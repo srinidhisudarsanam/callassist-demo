@@ -163,16 +163,22 @@ body.panel-hidden .panel { display: none; }
 .phone[data-who="adviser"] { --c1: #4f3a86; --c2: #221a3b; --c3: #0c0916; --a1: #b393f5; --a2: #6b44c4; --g1: #b393f5; --g2: #6f7cff; --g3: #f0c6ff; }
 .call-screen { background: radial-gradient(120% 70% at 50% 18%, var(--c1) 0%, var(--c2) 48%, var(--c3) 100%); color: #fff; padding: 76px 22px 26px; }
 .call-top { text-align: center; }
+.trust-line { display: inline-flex; align-items: center; gap: 6px; margin: 10px 0 0; padding: 5px 11px; border-radius: 999px; background: rgba(31, 122, 82, .1); color: #1f7a52; font-size: 13px; font-weight: 600; }
+.trust-line svg, .call-trust svg { flex: none; }
+.call-trust { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 4px 0 0; font-size: 12.5px; color: rgba(255, 255, 255, .78); white-space: nowrap; }
+.call-trust[data-who="adviser"] { color: #e3d6ff; font-weight: 600; }
+.call-trust[data-who="adviser"] svg { display: none; }
+.call-trust[data-who="adviser"]::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #b393f5; box-shadow: 0 0 0 3px rgba(179, 147, 245, .25); }
 .call-name { font-family: var(--display); font-size: 30px; font-weight: 500; letter-spacing: -.01em; margin: 6px 0 0; }
 .call-status { margin: 2px 0 0; color: rgba(255, 255, 255, .7); font-size: 17px; font-variant-numeric: tabular-nums; }
-.peer-avatar { width: 26%; aspect-ratio: 1; border-radius: 50%; background: linear-gradient(145deg, var(--a1), var(--a2)); color: #fff; display: grid; place-items: center; margin: 14px 0 10px; font-size: 34px; font-weight: 600; transition: box-shadow .3s ease; }
+.peer-avatar { width: 21%; aspect-ratio: 1; border-radius: 50%; background: linear-gradient(145deg, var(--a1), var(--a2)); color: #fff; display: grid; place-items: center; margin: 10px 0 8px; font-size: 34px; font-weight: 600; transition: box-shadow .3s ease; }
 .peer-avatar svg { width: 46%; }
 .peer-avatar.swap { animation: avatar-swap .9s cubic-bezier(.2, .7, .2, 1); }
 @keyframes avatar-swap { 0% { transform: scale(1); } 35% { transform: scale(.55); opacity: 0; } 36% { transform: scale(.55); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 .phone.is-speaking .peer-avatar { box-shadow: 0 0 0 8px rgba(255, 255, 255, .08), 0 0 0 16px rgba(255, 255, 255, .04); }
 .caption {
   width: 100%; flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: flex-end;
-  background: rgba(0, 0, 0, .28); border-radius: 20px; padding: 14px 16px; overflow: hidden;
+  background: rgba(0, 0, 0, .28); border-radius: 20px; padding: 12px 16px; overflow: hidden;
 }
 .caption-who { flex: none; margin: 0 0 4px; font-size: 13px; color: rgba(255, 255, 255, .6); font-weight: 600; }
 /* The speaker's name always stays visible; text too long for the box keeps its latest words and fades at the top. */

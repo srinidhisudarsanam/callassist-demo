@@ -38,6 +38,7 @@
       letterBye: "Kind regards,<br />Your CallAssist team", letterFoot: "Sample letter for the demo. Not sent.",
       calling: "calling…", onHold: "on hold", you: "You", assistant: "CallAssist", adviser: "Marina",
       handlerAssistant: "Automated assistant", handlerAdviser: "Marina, human adviser (simulated)",
+      trustLine: "CallAssist will never ask for a PIN or password.", trustShort: "Never asks for your PIN or password", adviserConnected: "Human adviser connected",
       turnListening: "Your turn. Just speak.", turnSpeaking: "CallAssist is speaking…", turnAdviserSpeaking: "Marina is speaking…",
       turnTap: "Tap “replies” to answer", turnRetry: "Didn't hear anything. Tap here to talk.", turnMuted: "Microphone muted",
       turnInterrupt: "Tap here or press Space to answer now", showReplies: "Show reply buttons", hideReplies: "Hide",
@@ -82,6 +83,7 @@
       letterBye: "Mit freundlichen Grüßen<br />Ihr CallAssist-Team", letterFoot: "Beispielbrief für die Demo. Nicht versendet.",
       calling: "wird angerufen…", onHold: "in der Warteschleife", you: "Sie", assistant: "CallAssist", adviser: "Marina",
       handlerAssistant: "Automatischer Assistent", handlerAdviser: "Marina, menschliche Beratung (simuliert)",
+      trustLine: "CallAssist fragt nie nach PIN oder Passwort.", trustShort: "Fragt nie nach PIN oder Passwort", adviserConnected: "Menschliche Beraterin verbunden",
       turnListening: "Sie sind dran. Sprechen Sie einfach.", turnSpeaking: "CallAssist spricht…", turnAdviserSpeaking: "Marina spricht…",
       turnTap: "Tippen Sie auf „Antworten“", turnRetry: "Nichts gehört. Hier tippen, um zu sprechen.", turnMuted: "Mikrofon stumm",
       turnInterrupt: "Hier tippen oder Leertaste, um jetzt zu antworten", showReplies: "Antwort-Knöpfe zeigen", hideReplies: "Ausblenden",
@@ -646,6 +648,9 @@
     $("handlerText").textContent = who === "adviser" ? t().handlerAdviser : t().handlerAssistant;
     $("phone").dataset.who = who;
     $("peerName").textContent = who === "adviser" ? "Marina" : "CallAssist";
+    // Under the name: the PIN promise, or, once Marina has joined, that a person is on the line.
+    $("callTrust").dataset.who = who;
+    $("callTrustText").textContent = who === "adviser" ? t().adviserConnected : t().trustShort;
     const avatar = $("peerAvatar");
     if (who === "adviser" && avatar.dataset.who !== "adviser") {
       avatar.dataset.who = "adviser";

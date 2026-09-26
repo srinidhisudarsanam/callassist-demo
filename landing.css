@@ -73,6 +73,7 @@ h1, h2, h3, p { margin: 0; }
 .hero-title { font-family: var(--display); font-size: clamp(22px, 2.6vw, 32px); font-weight: 600; letter-spacing: -.015em; line-height: 1.2; max-width: 30ch; }
 .hero-sub { color: var(--muted); font-size: clamp(18px, 1.6vw, 21px); max-width: 44ch; margin-top: 12px; }
 .hero-actions { display: flex; gap: 28px; align-items: center; margin-top: 24px; flex-wrap: wrap; }
+.hero-assure { margin: 14px 0 0; color: var(--ink); font-size: 16px; font-weight: 600; letter-spacing: -.005em; }
 .button { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 26px; border-radius: 999px; background: var(--brand); color: #fff; font-weight: 600; font-size: 17px; text-decoration: none; }
 .button:hover { background: var(--brand-hover); }
 .button.big { min-height: 58px; padding: 0 34px; font-size: 19px; }

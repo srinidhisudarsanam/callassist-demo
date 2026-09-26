@@ -6,7 +6,7 @@
     <meta name="description" content="Call CallAssist from your browser: a simulated phone call that books a real-world errand for you." />
     <title>Call CallAssist</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231F7A52'/%3E%3Cpath d='M22 16c2 0 3 1 4 3l3 7c1 2 0 3-1 4l-3 2c2 5 6 9 11 11l2-3c1-1 2-2 4-1l7 3c2 1 3 2 3 4 0 5-4 9-9 9-15 0-27-12-27-27 0-5 4-10 9-10z' fill='white'/%3E%3C/svg%3E" />
-    <link rel="stylesheet" href="call.css?v=20260926210642" />
+    <link rel="stylesheet" href="call.css?v=20260926211420" />
   </head>
   <body>
     <a class="skip-link" href="#transcript" data-i18n="skip">Skip to the transcript</a>
@@ -40,6 +40,7 @@
             </div>
             <h1 class="contact-name">CallAssist</h1>
             <p class="contact-sub" data-i18n="contactSub">Free phone line · Mon–Sat, 8:00–20:00</p>
+            <p class="trust-line"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span data-i18n="trustLine">CallAssist will never ask for a PIN or password.</span></p>
             <div class="contact-actions" aria-hidden="true">
               <span><b>✉</b><em data-i18n="actMessage">message</em></span>
               <span class="is-call"><b>✆</b><em data-i18n="actCall">call</em></span>
@@ -60,6 +61,7 @@
             <div class="call-top">
               <p class="call-name" id="peerName">CallAssist</p>
               <p class="call-status" id="callStatus" role="timer">calling…</p>
+              <p class="call-trust" id="callTrust"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span id="callTrustText">Never asks for your PIN or password</span></p>
             </div>
             <div class="peer-avatar" id="peerAvatar" aria-hidden="true">
               <svg width="28" height="28" viewBox="0 0 64 64"><path d="M22 16c2 0 3 1 4 3l3 7c1 2 0 3-1 4l-3 2c2 5 6 9 11 11l2-3c1-1 2-2 4-1l7 3c2 1 3 2 3 4 0 5-4 9-9 9-15 0-27-12-27-27 0-5 4-10 9-10z" fill="currentColor"/></svg>
@@ -163,8 +165,8 @@
       </article>
     </dialog>
 
-    <script src="trains.js?v=20260926210642"></script>
-    <script src="engine.js?v=20260926210642"></script>
-    <script src="call.js?v=20260926210642"></script>
+    <script src="trains.js?v=20260926211420"></script>
+    <script src="engine.js?v=20260926211420"></script>
+    <script src="call.js?v=20260926211420"></script>
   </body>
 </html>
