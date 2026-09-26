@@ -600,6 +600,7 @@
     const service = call.service || "address";
     $("holdTitle").textContent = kind === "transfer" ? t().holdTransferTitle : t().holdLookup[service];
     $("holdSub").textContent = kind === "transfer" ? t().holdTransferSub : t().holdLookupSub;
+    $("hold").dataset.kind = kind;
     $("hold").hidden = false;
     $("callStatus").textContent = t().onHold;
     startHoldMusic();

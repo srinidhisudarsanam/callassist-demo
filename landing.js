@@ -20,8 +20,10 @@
     heroTitle: "Digitale Dienste, ohne digital sein zu müssen.",
     heroSub: "Eine kostenlose Nummer anrufen und sagen, was Sie brauchen. CallAssist bucht es für Sie und bestätigt per Telefon oder Brief. Keine App, keine Website, kein Passwort. Gemacht für ältere Menschen und für alle, die das Internet nicht nutzen.",
     heroCta: "Jetzt anrufen", heroLink: "So funktioniert’s",
-    whyTitle: "2,1 Millionen Menschen zwischen 16 und 74 Jahren waren in Deutschland noch nie im Internet.",
-    whyBody: "Bei den 65- bis 74-Jährigen ist es jede zehnte Person, und Menschen ab 75 werden in der Erhebung gar nicht erfasst. Trotzdem beginnt ein Termin beim Bürgeramt, beim Hausarzt oder eine Bahnfahrkarte immer öfter auf einer Website oder in einer App. CallAssist ist vor allem für ältere Menschen gebaut und funktioniert für alle, die nicht online sind, mit dem Gerät, das alle kennen: dem Telefon.",
+    whyTitle: "Termine sind online gegangen. Millionen Menschen nicht.",
+    stat1n: "2,1 Millionen", stat1l: "Menschen zwischen 16 und 74 Jahren waren in Deutschland noch nie im Internet.",
+    stat2n: "1 von 10", stat2l: "der 65- bis 74-Jährigen ist offline. Menschen ab 75 werden gar nicht erfasst.",
+    whyBody: "Ein Termin beim Bürgeramt, beim Hausarzt oder eine Bahnfahrkarte beginnt immer öfter auf einer Website oder in einer App. CallAssist ist vor allem für ältere Menschen gebaut und funktioniert für alle, die nicht online sind, mit dem Gerät, das alle kennen: dem Telefon.",
     whySource: "Quelle: Statistisches Bundesamt (Destatis), IKT-Erhebung 2025, veröffentlicht am 24. Februar 2026",
     howTitle: "Drei Schritte. Alle am Telefon.",
     s1t: "Anrufen", s1b: "Eine kostenlose Nummer wählen, von jedem Telefon, auch vom Festnetz. CallAssist meldet sich sofort und sagt, wobei es helfen kann.",
@@ -52,7 +54,7 @@
     finalTitle: "Hören Sie selbst.",
     finalBody: "Rufen Sie CallAssist direkt hier im Browser an. Sprechen Sie Deutsch oder Englisch, wie am Telefon.",
     finalCta: "Anruf starten",
-    finalNote: "Am besten in Chrome oder Safari mit Mikrofon. Kein Mikrofon? Dann tippen Sie Ihre Antworten an.",
+    finalNote: "Am besten in Chrome oder Edge mit Mikrofon. Kein Mikrofon? Dann tippen Sie Ihre Antworten an.",
     footer1: "CallAssist ist ein akademischer Prototyp. Telefonnummer, Termine, Fahrkarten und die Beratung in der Demo sind simuliert; die Standorte der Bürgerämter sind echt."
   };
 
@@ -79,8 +81,34 @@
   apply();
 
   // The hero call plays once, line by line, at roughly the pace of a real exchange.
+  // The phone beside it shows the same call: timer, voice wave and live captions.
   const lines = [...document.querySelectorAll("#dialogue li")];
   const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (still) lines.forEach((li) => li.classList.add("shown"));
-  else lines.forEach((li, i) => setTimeout(() => li.classList.add("shown"), 350 + i * 850));
+  const hpWho = document.getElementById("hpWho");
+  const hpText = document.getElementById("hpText");
+  const hpTime = document.getElementById("hpTime");
+  const phone = document.querySelector(".hero-phone");
+  const caption = (li) => {
+    const you = li.classList.contains("caller");
+    hpWho.textContent = you ? (lang === "de" ? "Sie" : "You") : "CallAssist";
+    hpText.textContent = li.querySelector("span:last-child").textContent.replace(/^[“„"]|[”“"]$/g, "");
+    phone.classList.toggle("caller-speaking", you);
+  };
+  if (still) {
+    lines.forEach((li) => li.classList.add("shown"));
+    caption(lines[lines.length - 1]);
+    hpTime.textContent = "00:42";
+  } else {
+    lines.forEach((li, i) => setTimeout(() => { li.classList.add("shown"); caption(li); }, 350 + i * 850));
+    const start = Date.now() - 36000; // the call has been going for a little while
+    const tick = () => { const s = Math.floor((Date.now() - start) / 1000); hpTime.textContent = `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`; };
+    tick();
+    setInterval(tick, 1000);
+    setTimeout(() => phone.classList.add("settled"), 350 + lines.length * 850);
+  }
+  // Keep the phone caption in the chosen language.
+  document.querySelectorAll(".lang button").forEach((b) => b.addEventListener("click", () => {
+    const shown = lines.filter((li) => li.classList.contains("shown"));
+    if (shown.length) caption(shown[shown.length - 1]);
+  }));
 })();
