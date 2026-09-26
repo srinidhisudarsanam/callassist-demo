@@ -269,6 +269,7 @@
   }
 
   const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const PAUSE_MS = 1200; // silence after the caller's last word that ends their turn
 
   function utter(part, who) {
     return new Promise((resolve) => {
@@ -339,6 +340,8 @@
     const myToken = token;
     let finalText = "";
     let lastInterim = "";
+    let silenceTimer = null;
+    let hardStop = null;
     rec.onresult = (event) => {
       let interim = "";
       for (let i = event.resultIndex; i < event.results.length; i += 1) {
@@ -348,6 +351,13 @@
       }
       lastInterim = interim.trim();
       showCaption("caller", (finalText + " " + interim).trim(), true);
+      // Safari often keeps listening after the caller stops talking. End the turn ourselves
+      // after a short pause: stop() asks for the final text, finish() is the fallback.
+      clearTimeout(silenceTimer);
+      silenceTimer = setTimeout(() => {
+        try { rec.stop(); } catch (_) { /* already stopped */ }
+        hardStop = setTimeout(finish, 900);
+      }, lastInterim ? PAUSE_MS : 500);
     };
     rec.onerror = (event) => {
       if (event.error === "no-speech" || event.error === "aborted") return;
@@ -367,9 +377,13 @@
         $("voiceNote").textContent = t().voiceError(event.error || "unknown");
       }
     };
-    rec.onend = () => {
+    rec.onend = () => finish();
+    function finish() {
+      clearTimeout(silenceTimer);
+      clearTimeout(hardStop);
       if (recognition !== rec) return;
       recognition = null;
+      try { rec.abort(); } catch (_) { /* already stopped */ }
       if (myToken !== token || !call || call.ended) return;
       // Some browsers end without marking the last words final; use what was heard.
       const text = finalText.trim() || lastInterim;
@@ -382,7 +396,7 @@
       } else {
         setTurn(voice.ok && !micMuted ? "retry" : "tap");
       }
-    };
+    }
     try {
       rec.start();
       setTurn("listening");
