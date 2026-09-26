@@ -3,7 +3,7 @@
   --alt: #f5f5f7;
   --ink: #1d1d1f;
   --muted: #6e6e73;
-  --faint: #a1a1a6;
+  --faint: #6e6e73; /* 4.9:1 on white: secondary, but still readable */
   --line: #d2d2d7;
   --brand: #1f7a52;
   --brand-hover: #17613f;
@@ -166,7 +166,8 @@ section { padding: 112px 0; }
 .hp-who { font-size: 12px; font-weight: 600; color: rgba(255, 255, 255, .6); margin-bottom: 2px; }
 .hp-text { font-size: 16px; line-height: 1.35; }
 .hp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 18px; margin: 16px 0 14px; }
-.hp-grid span { width: 46px; height: 46px; border-radius: 50%; background: rgba(255, 255, 255, .16); }
+.hp-grid span { width: 46px; height: 46px; border-radius: 50%; background: rgba(255, 255, 255, .16); display: grid; place-items: center; color: #fff; }
+.hp-grid svg { width: 22px; height: 22px; }
 .hp-end { width: 56px; height: 56px; border-radius: 50%; background: #ff3b30; display: grid; place-items: center; }
 .hp-end svg { width: 26px; color: #fff; transform: rotate(135deg); }
 
