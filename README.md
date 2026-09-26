@@ -35,7 +35,7 @@ Marina should sound like a person, so the prototype always prefers the high-qual
 - **Honest limits:** cities other than Berlin, unsupported destinations, weekends, banking, passports and similar requests are declined with an explanation. Nothing is ever invented.
 - **Safety:** CallAssist states at the start that it never asks for a PIN or password. If the caller says one, the line is removed before it reaches the transcript. Medical emergencies are directed to 112.
 - **Confirmation:** a reference number, the details read back, and a sample confirmation letter on request.
-- **Controls:** mute, replies (tap-to-answer), speaker, slower speech, speak to a person, repeat, end call. Switch between EN and DE at any time, or say "Can we speak German?" during the call.
+- **Controls:** mute, replies (tap-to-answer), speaker, slower speech, speak to a person, repeat, end call. "Larger text" in the top bar enlarges the transcript and replies (also `call.html?text=large`). Switch between EN and DE at any time, or say "Can we speak German?" during the call.
 
 Simulated: the phone number, the free appointment times, the bookings and Marina. Real: the office and practice addresses, and the train numbers and timetable times. The Citizens' Office and GP practice locations are real. Nothing is stored or sent; the call exists only in the open browser tab.
 

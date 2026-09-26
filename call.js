@@ -24,7 +24,7 @@
       contactSub: "Free phone line, Monday to Saturday, 8:00 to 20:00",
       actMessage: "message", actCall: "call", actHome: "home", numberLabel: "phone",
       contactHint: "Press the green button and just talk. Allow the microphone when your browser asks.",
-      dial: "Call CallAssist", mute: "mute", replies: "replies", speaker: "speaker", slower: "slower", person: "person", repeat: "repeat", hangup: "End call",
+      dial: "Call CallAssist", mute: "mute", replies: "replies", speaker: "speaker", slower: "slower", person: "person", personActive: "with Marina", repeat: "repeat", hangup: "End call", largerText: "Larger text",
       sheetTitle: "What would you say?", done: "Done", typeLabel: "Type what you would say", typePlaceholder: "Or type it…", send: "Send",
       callEnded: "Call ended", callAgain: "Call again", backOverview: "Back to overview",
       transcript: "Live transcript", transcriptEmpty: "The conversation appears here once you call.",
@@ -68,7 +68,7 @@
       contactSub: "Kostenlose Telefonnummer, Montag bis Samstag, 8 bis 20 Uhr",
       actMessage: "Nachricht", actCall: "Anrufen", actHome: "Privat", numberLabel: "Telefon",
       contactHint: "Drücken Sie den grünen Knopf und sprechen Sie einfach. Erlauben Sie das Mikrofon, wenn der Browser fragt.",
-      dial: "CallAssist anrufen", mute: "stumm", replies: "Antworten", speaker: "Lautspr.", slower: "langsamer", person: "Mensch", repeat: "wiederholen", hangup: "Auflegen",
+      dial: "CallAssist anrufen", mute: "stumm", replies: "Antworten", speaker: "Lautspr.", slower: "langsamer", person: "Mensch", personActive: "bei Marina", repeat: "wiederholen", hangup: "Auflegen", largerText: "Größere Schrift",
       sheetTitle: "Was würden Sie sagen?", done: "Fertig", typeLabel: "Schreiben Sie, was Sie sagen würden", typePlaceholder: "Oder hier eintippen…", send: "Senden",
       callEnded: "Anruf beendet", callAgain: "Erneut anrufen", backOverview: "Zur Übersicht",
       transcript: "Gesprächsverlauf", transcriptEmpty: "Hier erscheint das Gespräch, sobald Sie anrufen.",
@@ -159,6 +159,7 @@
     renderHandler();
     renderFacts();
     renderChips();
+    renderControls();
     if (call && !call.ended) setTurn($("turn").dataset.state);
     if (!$("hold").hidden) holdText($("hold").dataset.kind);
     try { sessionStorage.setItem("callassist-lang", lang); } catch (_) { /* private mode */ }
@@ -275,14 +276,48 @@
   }
 
   // Split into sentences so captions follow the voice, without splitting "6. Oktober" or "31. The".
+  // One caption per sentence; a long one (an option with a full address) is split at its commas
+  // so the caption on the phone always fits and follows the voice.
+  const CAPTION_MAX = 64;
+  // A sentence ends after a word ("…Town Hall.") or after a house number ("…Allee 31. The second"),
+  // but not inside a time (9.40) or a German date ("29. September").
+  const SENTENCE_END = /(?<=[^\d\s][.!?])\s+|(?<=\d\.)\s+(?=\p{Lu})(?!(?:Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember)\b)/u;
+
+  // Pages of a caption that each fit the caption box at its current size; the first one is left showing.
+  function captionPages(who, text) {
+    const el = $("captionText");
+    showCaption(who, text);
+    if (!el.classList.contains("overflowing")) return [text];
+    const pages = [];
+    let page = "";
+    for (const word of text.split(" ")) {
+      const next = page ? `${page} ${word}` : word;
+      showCaption(who, next);
+      if (page && el.classList.contains("overflowing")) { pages.push(page); page = word; } else page = next;
+    }
+    if (page) pages.push(page);
+    showCaption(who, pages[0]);
+    return pages;
+  }
   function sentences(text) {
-    return text.split(/(?<=[^\d\s][.!?])\s+/).filter(Boolean);
+    const out = [];
+    for (const sentence of text.split(SENTENCE_END).filter(Boolean)) {
+      let chunk = "";
+      for (const piece of sentence.length > CAPTION_MAX ? sentence.split(/(?<=[,;:])\s+/) : [sentence]) {
+        if (chunk && chunk.length + piece.length + 1 > CAPTION_MAX) { out.push(chunk); chunk = piece; }
+        else chunk = chunk ? `${chunk} ${piece}` : piece;
+      }
+      if (chunk) out.push(chunk);
+    }
+    return out;
   }
 
   const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
   const PAUSE_MS = 1200; // silence after the caller's last word that ends their turn
 
-  function utter(part, who) {
+  // Speaks one part; a caption split into pages turns over as the voice reaches each page,
+  // by word boundaries where the voice reports them and by an estimate where it doesn't.
+  function utter(part, who, pages = [part]) {
     return new Promise((resolve) => {
       const synth = window.speechSynthesis;
       const u = new SpeechSynthesisUtterance(part);
@@ -293,11 +328,17 @@
       // The assistant is set slightly lower, which keeps the two apart even on a device with one voice.
       u.rate = slow ? 0.8 : who === "adviser" ? 1.02 : 0.97;
       u.pitch = who === "adviser" ? 1 : 0.92;
+      const starts = pages.map((_, i) => pages.slice(0, i).join(" ").length + (i ? 1 : 0));
+      let shown = 0;
+      const turnTo = (i) => { while (shown < i) showCaption(who, pages[++shown]); };
+      const pageTimers = starts.slice(1).map((at, i) => setTimeout(() => turnTo(i + 1), (at * 68) / u.rate));
+      u.onboundary = (e) => { let i = shown; while (i + 1 < pages.length && e.charIndex >= starts[i + 1]) i++; turnTo(i); };
       let finished = false;
       const finish = () => {
         if (finished) return;
         finished = true;
         clearTimeout(guard);
+        pageTimers.forEach(clearTimeout);
         resolve();
       };
       // Some browsers never fire "end"; never let a missing event stall the call.
@@ -315,9 +356,11 @@
     if (!speakerOn || !("speechSynthesis" in window)) {
       // Silent mode: captions still advance sentence by sentence at a comfortable reading pace.
       for (const part of sentences(text)) {
-        if (myToken !== token || rushToken === myToken) return;
-        showCaption(who, part);
-        await wait(FAST ? 15 : Math.min(4000, 700 + part.length * 38));
+        for (const page of captionPages(who, part)) {
+          if (myToken !== token || rushToken === myToken) return;
+          showCaption(who, page);
+          await wait(FAST ? 15 : Math.min(4000, 700 + page.length * 38));
+        }
       }
       return;
     }
@@ -326,8 +369,7 @@
       if (myToken !== token || rushToken === myToken) break;
       // People breathe between sentences, and never for exactly the same time.
       if (i > 0 && who === "adviser") await wait(220 + Math.random() * 260);
-      showCaption(who, part);
-      await utter(part, who);
+      await utter(part, who, captionPages(who, part));
     }
     phone.classList.remove("is-speaking");
   }
@@ -452,8 +494,11 @@
   function showCaption(who, text, interim = false) {
     $("captionWho").textContent = whoName(who);
     const el = $("captionText");
-    el.textContent = text;
+    const span = document.createElement("span");
+    span.textContent = text;
+    el.replaceChildren(span);
     el.classList.toggle("interim", interim);
+    el.classList.toggle("overflowing", span.offsetHeight > el.clientHeight + 1);
     if (who !== "caller") setTurn(who === "adviser" ? "adviserSpeaking" : "speaking");
   }
 
@@ -483,8 +528,26 @@
     p.textContent = text;
     li.append(p);
     $("transcript").append(li);
-    li.scrollIntoView({ block: "end", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    scrollTranscript(true);
   }
+
+  // Keep the newest line in view. Scrolls only the transcript, never the page, and stays pinned
+  // to the bottom when the panel shrinks (reply buttons appearing) unless the reader scrolled up.
+  let pinned = true, lastTop = 0;
+  function scrollTranscript(smooth) {
+    const box = $("transcript");
+    pinned = true;
+    const still = !smooth || matchMedia("(prefers-reduced-motion: reduce)").matches;
+    box.scrollTo({ top: box.scrollHeight, behavior: still ? "auto" : "smooth" });
+  }
+  $("transcript").addEventListener("scroll", (e) => {
+    const box = e.currentTarget;
+    const atEnd = box.scrollHeight - box.scrollTop - box.clientHeight < 24;
+    if (atEnd) pinned = true;
+    else if (box.scrollTop < lastTop) pinned = false;
+    lastTop = box.scrollTop;
+  }, { passive: true });
+  if ("ResizeObserver" in window) new ResizeObserver(() => { if (pinned) scrollTranscript(false); }).observe($("transcript"));
 
   function bookingCard(booking) {
     const bLang = lang;
@@ -516,7 +579,7 @@
     li.dataset.booking = booking.ref;
     li.replaceChildren(bookingCard(booking));
     if (!existing) $("transcript").append(li);
-    li.scrollIntoView({ block: "end" });
+    scrollTranscript(false);
   }
 
   function renderHandler() {
@@ -582,7 +645,12 @@
 
   function renderControls() {
     const onHold = call && call.stage === "hold";
-    $("personButton").disabled = !!onHold || (call && call.handler === "adviser");
+    // With Marina the button stays live and shows that a person is already on the line;
+    // pressing it lets Marina say so. It is only off while on hold, behind the hold screen.
+    const withAdviser = !!call && !call.ended && call.handler === "adviser";
+    $("personButton").disabled = !!onHold;
+    $("personButton").classList.toggle("is-adviser", withAdviser);
+    $("personLabel").textContent = withAdviser ? t().personActive : t().person;
     $("repeatButton").disabled = !!onHold;
   }
 
@@ -610,7 +678,14 @@
     $("hold").dataset.kind = kind;
     $("hold").hidden = false;
     $("callStatus").textContent = t().onHold;
+    announce(`${$("holdTitle").textContent}. ${$("holdSub").textContent}`);
     startHoldMusic();
+  }
+  // The call timer is silent for screen readers; only real changes (calling, on hold) are announced.
+  // Lines of the call itself are announced by the transcript.
+  function announce(text) {
+    $("announce").textContent = "";
+    setTimeout(() => { $("announce").textContent = text; }, 50);
   }
   function hideHold() {
     clearTimeout(holdTimer);
@@ -698,6 +773,7 @@
     $("peerAvatar").innerHTML = $("contactScreen").querySelector(".contact-avatar").innerHTML;
     setScreen("call");
     $("callStatus").textContent = t().calling;
+    announce(t().calling);
     setTurn("idle");
     render();
     ringback();
@@ -830,6 +906,15 @@
     $("panelToggle").setAttribute("aria-pressed", "false");
   }
   if (!speakerOn) $("speakerButton").setAttribute("aria-pressed", "false");
+  function setTextSize(large) {
+    if (large) document.documentElement.dataset.text = "large";
+    else delete document.documentElement.dataset.text;
+    $("textToggle").setAttribute("aria-pressed", String(large));
+    store.set("callassist-text", large ? "large" : "normal");
+    if (call && !call.ended) scrollTranscript(false);
+  }
+  $("textToggle").addEventListener("click", () => setTextSize(!document.documentElement.dataset.text));
+  if (store.get("callassist-text") === "large" || params.get("text") === "large") setTextSize(true);
 
   const clock = () => { $("clock").textContent = new Intl.DateTimeFormat("de-DE", { hour: "numeric", minute: "2-digit" }).format(new Date()); };
   clock();

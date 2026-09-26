@@ -73,7 +73,20 @@ button { cursor: pointer; }
 .lang { display: inline-flex; background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
 .lang button { border: 0; background: none; border-radius: 999px; min-width: 44px; min-height: 36px; font-size: 14px; font-weight: 600; color: var(--muted); }
 .lang button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
-.panel-toggle { border: 1px solid var(--line); background: var(--card); border-radius: 999px; min-height: 40px; padding: 0 16px; font-size: 14px; }
+.panel-toggle, .text-toggle { border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px; min-height: 40px; padding: 0 16px; font-size: 14px; }
+.text-toggle { display: inline-flex; align-items: center; gap: 8px; }
+.text-toggle-mark { font-weight: 600; font-size: 13px; letter-spacing: -.02em; }
+.text-toggle-mark b { font-size: 18px; }
+.text-toggle[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+/* Larger text: the transcript, replies and panel (the phone captions are already large), for older eyes and for a projector. */
+html[data-text="large"] .line-text { font-size: 22px; }
+html[data-text="large"] .line-who { font-size: 15px; }
+html[data-text="large"] .line.system .line-text { font-size: 17px; }
+html[data-text="large"] .chips button, html[data-text="large"] .type-form input, html[data-text="large"] .type-form button { font-size: 18px; }
+html[data-text="large"] .reply-label, html[data-text="large"] .reply-toggle, html[data-text="large"] .progress-label, html[data-text="large"] .handler { font-size: 17px; }
+html[data-text="large"] .behind { font-size: 18px; }
+html[data-text="large"] .round em { font-size: 15px; }
 
 /* ------------------------------------------------------------------ layout */
 .stage {
@@ -145,10 +158,11 @@ body.panel-hidden .panel { display: none; }
 .caption {
   width: 100%; flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: flex-end;
   background: rgba(0, 0, 0, .28); border-radius: 20px; padding: 14px 16px; overflow: hidden;
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 34px); mask-image: linear-gradient(to bottom, transparent 0, #000 34px);
 }
-.caption-who { margin: 0 0 4px; font-size: 13px; color: rgba(255, 255, 255, .6); font-weight: 600; }
-.caption-text { margin: 0; font-size: 19px; line-height: 1.35; }
+.caption-who { flex: none; margin: 0 0 4px; font-size: 13px; color: rgba(255, 255, 255, .6); font-weight: 600; }
+/* The speaker's name always stays visible; text too long for the box keeps its latest words and fades at the top. */
+.caption-text { margin: 0; font-size: 19px; line-height: 1.35; min-height: 0; overflow: hidden; display: flex; flex-direction: column-reverse; }
+.caption-text.overflowing { -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 30px); mask-image: linear-gradient(to bottom, transparent 0, #000 30px); }
 .caption-text .interim { color: rgba(255, 255, 255, .65); }
 .turn { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 44px; margin: 10px 0 6px; padding: 6px 16px; font-size: 16px; color: rgba(255, 255, 255, .88); border: 0; background: none; border-radius: 999px; }
 .turn.clickable { background: rgba(255, 255, 255, .12); }
@@ -176,6 +190,7 @@ body.panel-hidden .panel { display: none; }
 .round em { font-style: normal; font-size: 13px; }
 .round[aria-pressed="true"] b { background: #fff; color: #1d1d1f; }
 .round:disabled { opacity: .45; cursor: default; }
+.round.is-adviser b { background: #b393f5; color: #1d1d1f; }
 .hangup { background: var(--end-red); box-shadow: 0 10px 26px -8px rgba(255, 59, 48, .8); }
 .hangup svg { transform: rotate(135deg); }
 
