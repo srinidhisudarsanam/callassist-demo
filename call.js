@@ -230,8 +230,8 @@
   // when installed. Google's voices rank above the older Windows desktop voices (Hazel, Zira, Hedda), which sound robotic.
   const VOICE_PREFS = {
     en: {
-      assistant: ["Daniel", "Arthur", "Oliver", "Jamie", "Microsoft Ryan", "Microsoft Thomas", "Microsoft Guy", "Google UK English Male", "Microsoft George", "Microsoft David", "Microsoft Mark", "Alex", "Aaron", "Tom", "Evan", "Reed"],
-      adviser: ["Microsoft Sonia", "Microsoft Libby", "Microsoft Maisie", "Microsoft Ava", "Microsoft Emma", "Microsoft Jenny", "Microsoft Aria", "Ava", "Zoe", "Serena", "Kate", "Stephanie", "Allison", "Susan", "Samantha", "Moira", "Karen", "Tessa", "Martha", "Google UK English Female", "Google US English", "Microsoft Hazel", "Microsoft Zira"]
+      assistant: ["Microsoft Ryan", "Microsoft Thomas", "Microsoft Guy", "Daniel", "Arthur", "Oliver", "Jamie", "Google UK English Male", "Microsoft George", "Microsoft David", "Microsoft Mark", "Alex", "Aaron", "Tom", "Evan", "Reed"],
+      adviser: ["Microsoft Sonia", "Microsoft Libby", "Microsoft Maisie", "Microsoft Ava", "Microsoft Emma", "Microsoft Jenny", "Microsoft Aria", "Ava", "Zoe", "Serena", "Kate", "Stephanie", "Allison", "Susan", "Google UK English Female", "Google US English", "Samantha", "Moira", "Karen", "Tessa", "Martha", "Microsoft Hazel", "Microsoft Zira"]
     },
     de: {
       assistant: ["Markus", "Yannick", "Martin", "Viktor", "Microsoft Conrad", "Microsoft Killian", "Microsoft Florian", "Microsoft Stefan", "Reed", "Eddy", "Rocko"],
@@ -244,7 +244,9 @@
   function findVoice(code, who, avoid) {
     const pool = voices.filter((v) => v.lang.toLowerCase().replace("_", "-").startsWith(code) && !NOVELTY.test(v.name) && v !== avoid);
     // Neural "Natural"/"Online" (Edge) and "Premium"/"Enhanced" (Apple) voices sound human; prefer any of them first.
-    const quality = (v) => (/(premium|enhanced|natural|neural|online)/i.test(v.name) ? 0 : 1);
+    // Chrome's Google voices are the same on every computer, so they rank with these too: any laptop with
+    // Chrome or Edge then gets the same good voices, and the laptop's own older voices are only a fallback.
+    const quality = (v) => (/(premium|enhanced|natural|neural|online|^google)/i.test(v.name) ? 0 : 1);
     const named = (v, name) => v.name.toLowerCase().startsWith(name.toLowerCase());
     for (const pass of [0, 1]) {
       for (const name of VOICE_PREFS[code][who]) {
