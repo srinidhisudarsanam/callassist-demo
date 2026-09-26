@@ -53,8 +53,8 @@
     e1g: "Buchungszugang", e2g: "Vertrauen und Empfehlungen", e3g: "Finanzierung",
     nodeGives: "Telefonleitung, Sprachassistent, Marina", callerGets: "Ein Anruf",
     cmpTitle: "Dieselbe Besorgung. Zwei Wege.",
-    cmpLead: "Ziehen Sie den Regler: Aus jedem Schritt online wird ein einfacher Schritt am Telefon.",
-    cmpRange: "Regler: heute und mit CallAssist vergleichen",
+    cmpLead: "Ziehen Sie den Regler: Aus jedem Schritt online wird ein einfacher Schritt am Telefon.", cmpSteps: (n) => `${n} von 4 Schritten mit CallAssist`,
+    cmpRange: "Regler: von heute zu CallAssist",
     baBefore: "Heute", baAfter: "Mit CallAssist",
     b1: "App herunterladen", b1s: "App Store · 214 MB",
     b2: "Passwort festlegen", b2s: "Mindestens eine Zahl und ein Sonderzeichen",
@@ -287,37 +287,44 @@
   document.querySelectorAll(".handover, .flow").forEach((el) => seen.observe(el));
   document.querySelectorAll(".flow .arrow").forEach((a, i) => a.style.setProperty("--delay", `${0.3 + i * 0.35}s`));
 
-  // Before / after: the handle follows the slider (mouse, touch or arrow keys). When it first comes
-  // into view it sways once, to show that it can be dragged.
+  // Before / after: as the slider moves from "Today" to "With CallAssist", the rows turn over one by
+  // one from the problem to its fix. When it first comes into view it plays through once by itself.
   const ba = document.getElementById("ba");
   if (ba) {
     const range = ba.querySelector(".ba-range");
-    const setPos = (v) => ba.style.setProperty("--pos", `${v}%`);
+    const rows = [...ba.querySelectorAll(".ba-rows li")];
+    const steps = (n) => (lang === "de" ? DE.cmpSteps(n) : `${n} of 4 steps with CallAssist`);
+    const setPos = (v) => {
+      const done = rows.filter((_, i) => v >= 12.5 + 25 * i).length;
+      rows.forEach((li, i) => li.classList.toggle("fixed", i < done));
+      ba.style.setProperty("--p", (v / 100).toFixed(3));
+      range.setAttribute("aria-valuetext", steps(done));
+    };
     let touched = false;
-    range.addEventListener("input", (e) => { if (e.isTrusted) touched = true; setPos(range.value); });
+    range.addEventListener("input", (e) => { if (e.isTrusted) touched = true; setPos(Number(range.value)); });
     range.addEventListener("pointerdown", () => { touched = true; });
-    setPos(range.value);
-    if (!calm) {
-      const sway = new IntersectionObserver((entries) => {
+    document.querySelectorAll(".lang button").forEach((b) => b.addEventListener("click", () => setPos(Number(range.value))));
+    setPos(Number(range.value));
+    const playTo = (target) => {
+      const from = Number(range.value), start = performance.now(), ms = 2600;
+      const frame = (now) => {
+        if (touched) return;
+        const k = Math.min(1, (now - start) / ms);
+        const v = from + (target - from) * (0.5 - Math.cos(Math.PI * k) / 2);
+        range.value = v.toFixed(1);
+        setPos(v);
+        if (k < 1) requestAnimationFrame(frame);
+      };
+      requestAnimationFrame(frame);
+    };
+    if (calm) { range.value = 100; setPos(100); }
+    else {
+      const play = new IntersectionObserver((entries) => {
         if (!entries[0].isIntersecting) return;
-        sway.disconnect();
-        const keys = [[0, 50], [700, 70], [1500, 32], [2200, 50]];
-        const start = performance.now();
-        const ease = (k) => 0.5 - Math.cos(Math.PI * k) / 2;
-        const frame = (now) => {
-          if (touched) return;
-          const t = now - start;
-          const i = keys.findIndex(([at]) => at > t);
-          if (i === -1) { range.value = 50; setPos(50); return; }
-          const [t0, v0] = keys[i - 1], [t1, v1] = keys[i];
-          const v = v0 + (v1 - v0) * ease((t - t0) / (t1 - t0));
-          range.value = v.toFixed(1);
-          setPos(v.toFixed(1));
-          requestAnimationFrame(frame);
-        };
-        setTimeout(() => requestAnimationFrame(frame), 400);
+        play.disconnect();
+        setTimeout(() => playTo(100), 500);
       }, { threshold: 0.6 });
-      sway.observe(ba);
+      play.observe(ba);
     }
   }
 })();

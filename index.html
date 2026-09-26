@@ -6,7 +6,7 @@
     <meta name="description" content="CallAssist: one phone call replaces apps and websites. Say what you need; CallAssist books it and confirms by phone or letter." />
     <title>CallAssist</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231F7A52'/%3E%3Cpath d='M22 16c2 0 3 1 4 3l3 7c1 2 0 3-1 4l-3 2c2 5 6 9 11 11l2-3c1-1 2-2 4-1l7 3c2 1 3 2 3 4 0 5-4 9-9 9-15 0-27-12-27-27 0-5 4-10 9-10z' fill='white'/%3E%3C/svg%3E" />
-    <link rel="stylesheet" href="landing.css?v=20260926212524" />
+    <link rel="stylesheet" href="landing.css?v=20260926212855" />
   </head>
   <body>
     <a class="skip-link" href="#main" data-i18n="skip">Skip to content</a>
@@ -98,28 +98,31 @@
       <section class="compare" aria-labelledby="compare-title">
         <div class="wrap">
           <h2 id="compare-title" class="section-title" data-i18n="cmpTitle">Same errand. Two ways.</h2>
-          <p class="compare-lead" data-i18n="cmpLead">Drag the handle across: every step online today becomes one simple step on the phone.</p>
+          <p class="compare-lead" data-i18n="cmpLead">Drag the slider: every step online today becomes one simple step on the phone.</p>
           <div class="ba" id="ba">
-            <div class="ba-pane ba-before">
-              <p class="ba-tag" data-i18n="baBefore">Today</p>
-              <ol class="ba-rows">
-                <li><span class="ba-icon" aria-hidden="true">✕</span><div><b data-i18n="b1">Download the app</b><span data-i18n="b1s">App Store · 214 MB</span></div></li>
-                <li><span class="ba-icon" aria-hidden="true">✕</span><div><b data-i18n="b2">Create a password</b><span class="ba-err" data-i18n="b2s">Must contain a number and a special character</span></div></li>
-                <li><span class="ba-icon" aria-hidden="true">✕</span><div><b data-i18n="b3">No appointments available</b><span data-i18n="b3s">Please try again later</span></div></li>
-                <li><span class="ba-icon" aria-hidden="true">✕</span><div><b data-i18n="b4">Session expired</b><span data-i18n="b4s">Please log in again</span></div></li>
-              </ol>
+            <ol class="ba-rows">
+              <li>
+                <div class="face before"><span class="ba-icon" aria-hidden="true">✕</span><div><b data-i18n="b1">Download the app</b><span class="sub" data-i18n="b1s">App Store · 214 MB</span></div></div>
+                <div class="face after"><span class="ba-icon" aria-hidden="true">✓</span><div><b data-i18n="a1">Call one free number</b><span class="sub" data-i18n="a1s">0800 225 5277, from any phone</span></div></div>
+              </li>
+              <li>
+                <div class="face before"><span class="ba-icon" aria-hidden="true">✕</span><div><b data-i18n="b2">Create a password</b><span class="sub ba-err" data-i18n="b2s">Must contain a number and a special character</span></div></div>
+                <div class="face after"><span class="ba-icon" aria-hidden="true">✓</span><div><b data-i18n="a2">Say what you need</b><span class="sub" data-i18n="a2s">“I’ve moved and need to register my new address.”</span></div></div>
+              </li>
+              <li>
+                <div class="face before"><span class="ba-icon" aria-hidden="true">✕</span><div><b data-i18n="b3">No appointments available</b><span class="sub" data-i18n="b3s">Please try again later</span></div></div>
+                <div class="face after"><span class="ba-icon" aria-hidden="true">✓</span><div><b data-i18n="a3">Booked: Tuesday, 9:40</b><span class="sub" data-i18n="a3s">Citizens’ Office, Mitte Town Hall</span></div></div>
+              </li>
+              <li>
+                <div class="face before"><span class="ba-icon" aria-hidden="true">✕</span><div><b data-i18n="b4">Session expired</b><span class="sub" data-i18n="b4s">Please log in again</span></div></div>
+                <div class="face after"><span class="ba-icon" aria-hidden="true">✓</span><div><b data-i18n="a4">Confirmation by letter</b><span class="sub" data-i18n="a4s">Arrives within two working days</span></div></div>
+              </li>
+            </ol>
+            <div class="ba-control">
+              <span class="ba-end" data-i18n="baBefore">Today</span>
+              <input class="ba-range" type="range" min="0" max="100" value="0" aria-label="Slide from today to CallAssist" data-i18n-label="cmpRange" />
+              <span class="ba-end on" data-i18n="baAfter">With CallAssist</span>
             </div>
-            <div class="ba-pane ba-after">
-              <p class="ba-tag" data-i18n="baAfter">With CallAssist</p>
-              <ol class="ba-rows">
-                <li><span class="ba-icon" aria-hidden="true">✓</span><div><b data-i18n="a1">Call one free number</b><span data-i18n="a1s">0800 225 5277, from any phone</span></div></li>
-                <li><span class="ba-icon" aria-hidden="true">✓</span><div><b data-i18n="a2">Say what you need</b><span data-i18n="a2s">“I’ve moved and need to register my new address.”</span></div></li>
-                <li><span class="ba-icon" aria-hidden="true">✓</span><div><b data-i18n="a3">Booked: Tuesday, 9:40</b><span data-i18n="a3s">Citizens’ Office, Mitte Town Hall</span></div></li>
-                <li><span class="ba-icon" aria-hidden="true">✓</span><div><b data-i18n="a4">Confirmation by letter</b><span data-i18n="a4s">Arrives within two working days</span></div></li>
-              </ol>
-            </div>
-            <div class="ba-handle" aria-hidden="true"><span>‹ ›</span></div>
-            <input class="ba-range" type="range" min="0" max="100" value="50" aria-label="Slide to compare today with CallAssist" data-i18n-label="cmpRange" />
           </div>
         </div>
       </section>
@@ -289,6 +292,6 @@
       </div>
     </footer>
 
-    <script src="landing.js?v=20260926212524"></script>
+    <script src="landing.js?v=20260926212855"></script>
   </body>
 </html>
