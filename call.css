@@ -323,3 +323,8 @@ body.panel-hidden .panel { display: none; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
 }
+
+/* Arriving from the product page, the phone morphs into this one (Chrome and Edge). */
+@view-transition { navigation: auto; }
+.phone { view-transition-name: callphone; }
+::view-transition-group(callphone) { animation-duration: .7s; animation-timing-function: cubic-bezier(.2, .7, .2, 1); }

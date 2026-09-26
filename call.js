@@ -7,6 +7,8 @@
   const $ = (id) => document.getElementById(id);
   const params = new URLSearchParams(location.search);
   const FAST = params.has("fast"); // shortens tones and holds, for automated checks
+  // The language choice lasts for this visit only; every new visit starts in English.
+  const sessionLang = () => { try { return sessionStorage.getItem("callassist-lang"); } catch (_) { return null; } };
   const store = {
     get(key) { try { return localStorage.getItem(key); } catch (_) { return null; } },
     set(key, value) { try { localStorage.setItem(key, value); } catch (_) { /* private mode */ } }
@@ -108,7 +110,7 @@
 
   // ---------------------------------------------------------------- state
 
-  const initialLang = params.get("lang") || store.get("callassist-lang") || ((navigator.language || "").toLowerCase().startsWith("de") ? "de" : "en");
+  const initialLang = params.get("lang") || sessionLang() || "en";
   let lang = initialLang === "de" ? "de" : "en";
   let call = null;
   let token = 0;
@@ -157,7 +159,7 @@
     renderFacts();
     renderChips();
     if (call && !call.ended) setTurn($("turn").dataset.state);
-    store.set("callassist-lang", lang);
+    try { sessionStorage.setItem("callassist-lang", lang); } catch (_) { /* private mode */ }
   }
 
   function chooseLanguage(next) {

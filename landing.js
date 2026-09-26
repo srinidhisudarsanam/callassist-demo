@@ -3,8 +3,9 @@
   "use strict";
   document.documentElement.classList.add("js");
   const store = {
-    get(key) { try { return localStorage.getItem(key); } catch (_) { return null; } },
-    set(key, value) { try { localStorage.setItem(key, value); } catch (_) { /* private mode */ } }
+    // Session only: every new visit starts in English.
+    get(key) { try { return sessionStorage.getItem(key); } catch (_) { return null; } },
+    set(key, value) { try { sessionStorage.setItem(key, value); } catch (_) { /* private mode */ } }
   };
 
   const DE = {
@@ -30,6 +31,8 @@
     s2t: "Sprechen", s2b: "Sagen Sie in Ihren eigenen Worten, was Sie brauchen, auf Deutsch oder Englisch. CallAssist stellt eine einfache Frage nach der anderen und wiederholt, was es verstanden hat.",
     s3t: "Erledigt", s3b: "Nach Ihrem klaren Ja bucht CallAssist, liest Ihnen die Details vor und schickt auf Wunsch eine Bestätigung per Post.",
     servicesTitle: "Eine Nummer. Drei Anliegen für den Anfang.",
+    ss1Status: "wird angerufen…", ss2Ask: "Welcher Tag nächste Woche passt Ihnen?", ss2Reply: "Dienstagvormittag, bitte.",
+    ss3Title: "Gebucht", ss3When: "Dienstag, 9:40 Uhr", ss3Where: "Bürgeramt Rathaus Mitte", ss3Letter: "Bestätigungsbrief ist unterwegs",
     sv1t: "Neue Adresse anmelden", sv1b: "Ein Termin beim Bürgeramt in Berlin, Düsseldorf, München oder Frankfurt, mit einem Hinweis, was Sie mitbringen müssen.", sv1q: "„Ich bin umgezogen und muss mich anmelden.“",
     sv2t: "Zum Hausarzt", sv2b: "Ein Termin am Vormittag oder Nachmittag in einer Hausarztpraxis, zum Beispiel im MVZ Medicover am Hausvogteiplatz in Mitte. Im Notfall sagt CallAssist Ihnen, dass Sie die 112 anrufen sollen.", sv2q: "„Ich brauche einen Termin bei meinem Hausarzt.“",
     sv3t: "Mit dem Zug fahren", sv3b: "Echte ICE-Verbindungen ab Berlin, Düsseldorf, München und Frankfurt in Deutschlands große Städte, die Fahrkarte kommt per Post.", sv3q: "„Eine Fahrkarte von Düsseldorf nach München, bitte.“",
@@ -63,7 +66,7 @@
   document.querySelectorAll("[data-i18n]").forEach((el) => { EN[el.dataset.i18n] = el.textContent; });
 
   const params = new URLSearchParams(location.search);
-  let lang = params.get("lang") || store.get("callassist-lang") || ((navigator.language || "").toLowerCase().startsWith("de") ? "de" : "en");
+  let lang = params.get("lang") || store.get("callassist-lang") || "en";
   if (lang !== "de") lang = "en";
 
   function apply() {
@@ -111,4 +114,96 @@
     const shown = lines.filter((li) => li.classList.contains("shown"));
     if (shown.length) caption(shown[shown.length - 1]);
   }));
+
+  // ---------------------------------------------------------------- depth and motion
+  const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const nav = document.querySelector(".nav");
+  const heroPhone = document.getElementById("heroPhone");
+  const track = document.getElementById("storyTrack");
+  const sticky = document.getElementById("storySticky");
+  const storyPhone = document.getElementById("storyPhone");
+
+  // The hero phone rises into place once, then floats and follows the pointer.
+  if (!calm && heroPhone) {
+    heroPhone.classList.add("entering");
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      heroPhone.classList.remove("entering");
+      setTimeout(() => heroPhone.classList.add("floating"), 1300);
+    }));
+    const hero = document.querySelector(".hero");
+    if (matchMedia("(pointer: fine)").matches) {
+      hero.addEventListener("pointermove", (e) => {
+        const r = hero.getBoundingClientRect();
+        const x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+        heroPhone.style.setProperty("--ry", `${-16 + x * 22}deg`);
+        heroPhone.style.setProperty("--rx", `${6 - y * 12}deg`);
+        heroPhone.style.setProperty("--sheen", String(x * 60));
+      });
+      hero.addEventListener("pointerleave", () => { heroPhone.style.removeProperty("--ry"); heroPhone.style.removeProperty("--rx"); heroPhone.style.removeProperty("--sheen"); });
+    }
+  }
+
+  // Scroll: the pinned story turns the phone and moves through its three screens.
+  function onScroll() {
+    nav.classList.toggle("scrolled", scrollY > 8);
+    if (!track || getComputedStyle(sticky).position !== "sticky") return;
+    const r = track.getBoundingClientRect();
+    const p = Math.min(1, Math.max(0, -r.top / (r.height - innerHeight)));
+    storyPhone.style.setProperty("--p", calm ? "0.5" : p.toFixed(3));
+    storyPhone.style.setProperty("--sheen", String((p - 0.5) * 80));
+    sticky.dataset.step = p < 0.34 ? "1" : p < 0.67 ? "2" : "3";
+  }
+  addEventListener("scroll", () => requestAnimationFrame(onScroll), { passive: true });
+  addEventListener("resize", onScroll);
+  onScroll();
+
+  // Headlines and content sharpen into view, siblings slightly staggered.
+  const reveal = document.querySelectorAll(".section-title, .statement, .why-body, .stat, .service-list li, .human-body, .promises li, .partners li, .node, .trust-lead, .eco-lead, .final-body, .call-cta");
+  reveal.forEach((el) => {
+    el.classList.add("reveal");
+    const siblings = [...el.parentElement.children].filter((c) => c.classList.contains("reveal"));
+    el.style.setProperty("--delay", `${Math.min(siblings.indexOf(el), 4) * 0.09}s`);
+  });
+
+  // Statistics count up to their real value.
+  function countUp(el) {
+    const text = el.textContent;
+    const m = /(\d+)([.,](\d+))?/.exec(text);
+    if (!m || calm) return;
+    const target = parseFloat(m[0].replace(",", "."));
+    const decimals = m[3] ? m[3].length : 0;
+    const sep = m[2] ? m[2][0] : ".";
+    const start = performance.now();
+    const frame = (now) => {
+      const k = Math.min(1, (now - start) / 1400);
+      const v = (target * (1 - Math.pow(1 - k, 3))).toFixed(decimals).replace(".", sep);
+      el.textContent = text.slice(0, m.index) + v + text.slice(m.index + m[0].length);
+      if (k < 1) requestAnimationFrame(frame); else el.textContent = text;
+    };
+    requestAnimationFrame(frame);
+  }
+
+  // The handover plays like a real chat: caller, CallAssist, Marina typing, Marina.
+  function playHandover(box) {
+    const [caller, ca, typing, marina] = box.querySelectorAll(".bubble");
+    const steps = [[caller, 0], [ca, 900], [typing, 1900], [marina, 3100]];
+    steps.forEach(([el, t]) => setTimeout(() => {
+      if (el === marina) typing.classList.add("gone");
+      el.classList.add("in");
+    }, calm ? 0 : t));
+  }
+
+  const seen = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      const el = entry.target;
+      el.classList.add("in");
+      if (el.classList.contains("stat")) countUp(el.querySelector(".stat-n"));
+      if (el.classList.contains("handover")) playHandover(el);
+      seen.unobserve(el);
+    });
+  }, { threshold: 0.25, rootMargin: "0px 0px -8% 0px" });
+  reveal.forEach((el) => seen.observe(el));
+  document.querySelectorAll(".handover, .flow").forEach((el) => seen.observe(el));
+  document.querySelectorAll(".flow .arrow").forEach((a, i) => a.style.setProperty("--delay", `${0.3 + i * 0.35}s`));
 })();
