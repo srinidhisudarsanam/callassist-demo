@@ -314,3 +314,63 @@ test("options fall in the next calendar week (Berlin time)", () => {
   toOptions(c);
   assert.equal(c.state.options[0].date, "2026-09-29");
 });
+
+test('"Yes, can you give me the address?" before the options: promise the address, then look up', () => {
+  const c = call("de");
+  c.say("Ich brauche einen Termin bei meinem Hausarzt");
+  c.say("In Berlin");
+  c.say("Vormittags");
+  c.say("Ja, können Sie mir die Adresse geben?");
+  assert.ok(c.log.some((o) => o.type === "say" && /genaue Adresse nenne ich Ihnen gleich/.test(o.text)));
+  assert.equal(c.state.stage, "options");
+});
+
+test("asking where the office is during the options gives the real addresses", () => {
+  const c = call();
+  toOptions(c);
+  c.say("Where are they?");
+  assert.match(c.lastSaid(), /Which would you like|Which one/);
+  assert.ok(c.log.some((o) => o.type === "say" && /Karl-Marx-Allee 31/.test(o.text) && /John-F.-Kennedy-Platz 1/.test(o.text)));
+  assert.equal(c.state.stage, "options");
+});
+
+for (const q of ["Yes, but what's the address?", "Ja, wo ist das denn?", "Yes, what do I need to bring?", "Yes, how much does it cost?", "Yes, how long will it take?"]) {
+  test(`a question at the final check never books: "${q}"`, () => {
+    const c = call(/Ja,/.test(q) ? "de" : "en");
+    toOptions(c, /Ja,/.test(q) ? "Ich bin umgezogen und muss meine neue Adresse anmelden" : undefined);
+    c.say(/Ja,/.test(q) ? "Den ersten" : "The first one");
+    c.say(q);
+    assert.equal(bookings(c).length, 0);
+    assert.equal(c.state.stage, "confirm");
+  });
+}
+
+test("answers about documents and cost use the real requirements", () => {
+  const c = call();
+  toOptions(c);
+  c.say("What do I need to bring?");
+  assert.ok(c.log.some((o) => o.type === "say" && /ID card or passport/.test(o.text)));
+  c.say("Does it cost anything?");
+  assert.ok(c.log.some((o) => o.type === "say" && /free of charge/.test(o.text)));
+});
+
+test('"Can you book it?" at the final check still books', () => {
+  const c = call();
+  toOptions(c);
+  c.say("The first one");
+  c.say("Yes, can you book it?");
+  assert.equal(bookings(c).length, 1);
+});
+
+test('"Can you also register my address?" after a booking starts that errand', () => {
+  const c = call();
+  c.say("I need an appointment with my doctor");
+  c.say("Berlin");
+  c.say("Tuesday morning");
+  c.say("Yes");
+  c.say("The first one");
+  c.say("Yes");
+  c.say("No, the phone is enough");
+  c.say("Can you also register my new address?");
+  assert.equal(c.state.service, "address");
+});

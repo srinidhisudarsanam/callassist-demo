@@ -111,6 +111,12 @@
     banking: words(["bank", "banking", "online banking", "transfer money", "money transfer", "pay a bill", "überweis*", "konto", "sparkasse", "geld"]),
     notYet: words(["passport", "id card", "identity card", "personalausweis", "ausweis", "reisepass", "pension", "rente", "tax", "taxes", "steuer*", "parcel", "package", "paket", "insurance", "versicherung*", "driving licence", "driver's license", "führerschein"]),
     bye: words(["bye", "goodbye", "good bye", "tschüss", "tschüs", "ciao", "auf wiederhören", "auf wiedersehen"]),
+    // Questions the caller may ask along the way; CallAssist answers before carrying on.
+    asking: /^\s*(can|could|would|will|what|where|when|how|why|which|is|are|do|does|kann|können|könnten|würden|was|wo|wann|wie|warum|welche\p{L}*|ist|sind|gibt)\b|können sie|könnten sie|can you|could you|tell me|give me|sagen sie mir|geben sie mir|nennen sie mir|i'?d like to know|ich möchte wissen/u,
+    askWhere: words(["address", "addresses", "where", "located", "location", "adresse", "adressen", "anschrift", "wo", "straße", "strasse", "platform", "gleis"]),
+    askBring: words(["bring", "take with me", "documents", "papers", "need to have", "mitbringen", "mitnehmen", "unterlagen", "dokumente", "papiere"]),
+    askCost: words(["cost", "costs", "how much", "price", "fee", "pay", "free of charge", "kostet", "kosten", "preis", "gebühr", "gebühren", "bezahlen", "zahlen", "kostenlos"]),
+    bookCommand: words(["book", "book it", "go ahead", "confirm", "reserve", "buchen", "bestätigen", "reservieren", "machen sie"]),
     done: words(["that's all", "thats all", "that is all", "nothing else", "no thanks", "no thank you", "das war's", "das wars", "das war alles", "nichts mehr", "sonst nichts", "nein danke"]),
     postal: words(["post", "by post", "letter", "mail", "brief", "per post", "postal", "zuschicken", "schicken", "send"]),
     phone: words(["phone", "telephone", "phone only", "telefon*", "telefonisch", "abholen", "collect", "pick up"]),
@@ -183,6 +189,9 @@
     f.banking = LEX.banking.test(t);
     f.notYet = LEX.notYet.test(t);
     f.bye = LEX.bye.test(t);
+    f.question = /\?/.test(String(raw)) || LEX.asking.test(t);
+    f.ask = f.question ? (LEX.askWhere.test(t) ? "where" : LEX.askBring.test(t) ? "bring" : LEX.askCost.test(t) ? "cost" : null) : null;
+    f.bookCommand = LEX.bookCommand.test(t);
     f.done = LEX.done.test(t);
     f.postal = LEX.postal.test(t);
     f.phone = LEX.phone.test(t);
@@ -402,7 +411,21 @@
       destUnsupported: (city) => `I'm sorry, I can't book trains to ${city} yet. I can book direct trains from Berlin to Hamburg, Hanover, Leipzig, Dresden, Frankfurt, Cologne or Munich. Where would you like to go?`,
       fromBerlin: "The train leaves from Berlin. Where would you like to go?",
       weekend: (s) => (s.service === "doctor" ? "GP practices are closed at the weekend. Which weekday would suit you?" : "The Citizens' Offices are closed at the weekend. Which weekday would suit you?"),
-      langSwitched: "Of course, let's continue in English."
+      langSwitched: "Of course, let's continue in English.",
+      whereLater: "I'll give you the exact address when I read out the options in a moment.",
+      whereOptions: (s) => (s.service === "train"
+        ? "All trains leave from Berlin Central Station. The platform is printed on your ticket."
+        : s.service === "doctor"
+          ? `One practice is in ${s.options.length ? "Berlin-Mitte, the other in Berlin-Schöneberg" : "Berlin"}. The exact address is in your confirmation letter.`
+          : `The first is at ${PLACES.address[0].name.en}, ${PLACES.address[0].street}. The second is at ${PLACES.address[1].name.en}, ${PLACES.address[1].street}.`),
+      whereChosen: (o) => (o.service === "train"
+        ? "Your train leaves from Berlin Central Station. The platform is printed on your ticket."
+        : o.service === "doctor"
+          ? `The practice is in ${PLACES.doctor[o.place].street}. The exact address is in your confirmation letter.`
+          : `It's at ${PLACES.address[o.place].name.en}, ${PLACES.address[o.place].street}.`),
+      bring: (s) => ({ address: "Please bring your ID card or passport, and the confirmation from your landlord that you've moved in.", doctor: "Just bring your health insurance card.", train: "Just bring your ticket and a photo ID." })[s.service],
+      cost: (s) => ({ address: "Registering your address is free of charge, and CallAssist is free for you too.", doctor: "The appointment is covered by your health insurance, and CallAssist is free for you.", train: "CallAssist is free for you. The fare is on the invoice that comes with your ticket." })[s.service],
+      questionFirst: "Before I book anything, I want to make sure: shall I book it now, yes or no?"
     },
     de: {
       greeting: (s) => `${hello(s)}, hier ist CallAssist. Ich bin ein automatischer Assistent, und Sie können jederzeit mit einem Menschen sprechen. Vorab: Ich frage Sie niemals nach Ihrer PIN oder einem Passwort. Ich kann Ihnen heute bei drei Dingen helfen: eine neue Adresse beim Bürgeramt anmelden, einen Termin in einer Hausarztpraxis vereinbaren oder eine Bahnfahrkarte buchen. Was möchten Sie tun?`,
@@ -465,7 +488,21 @@
       destUnsupported: (city) => `Das tut mir leid, Fahrten nach ${city} kann ich noch nicht buchen. Ich buche direkte Züge von Berlin nach Hamburg, Hannover, Leipzig, Dresden, Frankfurt, Köln oder München. Wohin möchten Sie?`,
       fromBerlin: "Der Zug fährt ab Berlin. Wohin möchten Sie fahren?",
       weekend: (s) => (s.service === "doctor" ? "Hausarztpraxen haben am Wochenende geschlossen. Welcher Wochentag passt Ihnen?" : "Die Bürgerämter haben am Wochenende geschlossen. Welcher Wochentag passt Ihnen?"),
-      langSwitched: "Gern, wir sprechen ab jetzt Deutsch."
+      langSwitched: "Gern, wir sprechen ab jetzt Deutsch.",
+      whereLater: "Die genaue Adresse nenne ich Ihnen gleich, wenn ich die Möglichkeiten vorlese.",
+      whereOptions: (s) => (s.service === "train"
+        ? "Alle Züge fahren ab Berlin Hauptbahnhof. Das Gleis steht auf Ihrer Fahrkarte."
+        : s.service === "doctor"
+          ? `${s.options.length ? "Eine Praxis ist in Berlin-Mitte, die andere in Berlin-Schöneberg" : "Die Praxis ist in Berlin"}. Die genaue Adresse steht in Ihrem Bestätigungsbrief.`
+          : `Der erste Termin ist im ${PLACES.address[0].name.de}, ${PLACES.address[0].street}. Der zweite im ${PLACES.address[1].name.de}, ${PLACES.address[1].street}.`),
+      whereChosen: (o) => (o.service === "train"
+        ? "Ihr Zug fährt ab Berlin Hauptbahnhof. Das Gleis steht auf Ihrer Fahrkarte."
+        : o.service === "doctor"
+          ? `Die Praxis ist in ${PLACES.doctor[o.place].street}. Die genaue Adresse steht in Ihrem Bestätigungsbrief.`
+          : `Das ist im ${PLACES.address[o.place].name.de}, ${PLACES.address[o.place].street}.`),
+      bring: (s) => ({ address: "Bitte bringen Sie Ihren Personalausweis oder Reisepass mit und die Wohnungsgeberbestätigung von Ihrem Vermieter.", doctor: "Bringen Sie einfach Ihre Versichertenkarte mit.", train: "Bringen Sie einfach Ihre Fahrkarte und einen Lichtbildausweis mit." })[s.service],
+      cost: (s) => ({ address: "Die Anmeldung ist kostenlos, und CallAssist ist für Sie auch kostenlos.", doctor: "Der Termin wird von Ihrer Krankenkasse übernommen, und CallAssist ist für Sie kostenlos.", train: "CallAssist ist für Sie kostenlos. Den Fahrpreis finden Sie auf der Rechnung, die mit der Fahrkarte kommt." })[s.service],
+      questionFirst: "Bevor ich etwas buche, möchte ich sichergehen: Soll ich jetzt buchen, ja oder nein?"
     }
   };
 
@@ -828,6 +865,22 @@
     }
   };
 
+  function answerQuestion(ctx, f) {
+    const s = ctx.s;
+    s.misses = 0;
+    const chosen = s.booking && ["notify", "more"].includes(s.stage) ? s.booking : s.selection;
+    if (f.ask === "where") {
+      if (chosen) say(ctx, TEXT[s.lang].whereChosen(chosen));
+      else if (s.options.length || s.service === "train") say(ctx, T(s, "whereOptions"));
+      else say(ctx, T(s, "whereLater"));
+    } else {
+      say(ctx, T(s, f.ask));
+    }
+    // A plain yes alongside the question still confirms the summary, but never a booking.
+    if (s.stage === "review" && f.yes && !f.no) { lookup(ctx); return; }
+    say(ctx, promptFor(s));
+  }
+
   function missed(ctx) {
     const s = ctx.s;
     s.misses += 1;
@@ -868,6 +921,16 @@
       return;
     }
     if (f.bye && !["notify", "more"].includes(s.stage)) { close(ctx, true); return; }
+    const newErrand = f.service && f.service !== s.service && ["more", "change"].includes(s.stage);
+    if (f.ask && s.service && !newErrand && ["city", "destination", "pref", "review", "change", "options", "confirm", "notify", "more"].includes(s.stage)) {
+      answerQuestion(ctx, f);
+      return;
+    }
+    // "Yes, but how long does it take?" is not permission to book.
+    if (s.stage === "confirm" && f.question && f.yes && !f.no && !f.bookCommand) {
+      say(ctx, T(s, "questionFirst"));
+      return;
+    }
 
     const before = ctx.out.length;
     const handled = STAGES[s.stage] ? STAGES[s.stage](ctx, f) : false;
