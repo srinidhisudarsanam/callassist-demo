@@ -133,6 +133,52 @@ section { padding: 112px 0; }
 .node-name { font-family: var(--display); font-size: 24px; font-weight: 600; letter-spacing: -.01em; margin-bottom: 6px; }
 .node p:not(.node-name) { font-size: 16px; line-height: 1.4; opacity: .9; }
 .node.person { background: var(--bg); color: var(--ink); border: 2px solid var(--brand); }
+/* What each party brings, and what reaches the caller. */
+.gives { display: inline-block; margin: 8px 0 6px; padding: 3px 10px; border-radius: 999px; background: var(--brand-soft); color: var(--brand); font-size: 13px !important; font-weight: 600; line-height: 1.4; opacity: 1 !important; }
+.node .gives.on-brand { background: rgba(255, 255, 255, .18); color: #fff; margin-top: 0; }
+/* Value travels along the arrows once the diagram is in view. */
+.arrow i { position: absolute; top: -3px; left: 0; width: 8px; height: 8px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 25%, transparent); opacity: 0; }
+.js .flow.in .arrow i { animation: flow-x 2s linear infinite; animation-delay: calc(var(--delay, 0s) + .8s); }
+.js .flow.in .arrow i:nth-child(2) { animation-delay: calc(var(--delay, 0s) + 1.8s); }
+@keyframes flow-x { 0% { left: 0; opacity: 0; } 15%, 80% { opacity: 1; } 100% { left: calc(100% - 8px); opacity: 0; } }
+@keyframes flow-y { 0% { top: 0; opacity: 0; } 15%, 80% { opacity: 1; } 100% { top: calc(100% - 8px); opacity: 0; } }
+
+/* ------------------------------------------------------------------ before / after */
+.compare-lead { color: var(--muted); font-size: 21px; max-width: 44ch; margin-top: 16px; }
+.ba { --pos: 50%; position: relative; height: 460px; margin-top: 40px; border-radius: 28px; overflow: hidden; user-select: none; box-shadow: 0 0 0 1px var(--line); }
+.ba-pane { position: absolute; inset: 0; }
+.ba-before { background: repeating-linear-gradient(0deg, transparent 0 31px, color-mix(in srgb, var(--line) 45%, transparent) 31px 32px), #eceef1; }
+.ba-after { background: radial-gradient(90% 90% at 80% 50%, #d7eee1, #f4faf6 70%); clip-path: inset(0 0 0 var(--pos)); }
+.ba-tag { position: absolute; top: 20px; margin: 0; padding: 5px 12px; border-radius: 999px; font-size: 13px; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; }
+.ba-before .ba-tag { left: 22px; background: rgba(0, 0, 0, .07); color: #3a3a3c; }
+.ba-after .ba-tag { right: 22px; background: var(--brand); color: #fff; }
+.ba-mess { position: absolute; left: 4%; top: 78px; width: 50%; height: 340px; }
+.ba-card { position: absolute; width: min(270px, 80%); background: #fff; color: #1d1d1f; border-radius: 14px; padding: 12px 16px; box-shadow: 0 10px 30px -14px rgba(0, 0, 0, .35); font-size: 15px; line-height: 1.35; }
+.ba-card b { display: block; font-weight: 600; }
+.ba-card span { display: block; color: #6e6e73; font-size: 13px; }
+.ba-card .ba-dots { color: #1d1d1f; letter-spacing: .2em; font-size: 15px; margin: 4px 0 2px; }
+.ba-card .ba-err { color: #d70015; }
+.ba-card.c1 { left: 0; top: 0; rotate: -3deg; }
+.ba-card.c2 { left: 26%; top: 64px; rotate: 2deg; }
+.ba-card.c3 { left: 6%; top: 168px; rotate: 1.5deg; border-left: 4px solid #d70015; }
+.ba-card.c3 b { color: #d70015; }
+.ba-card.c4 { left: 32%; top: 246px; rotate: -2deg; opacity: .85; }
+.ba-calm { position: absolute; right: 6%; top: 50%; transform: translateY(-50%); width: min(420px, 42%); display: grid; gap: 14px; color: #1d1d1f; }
+.ba-calm p { margin: 0; }
+.ba-number { font-family: var(--display); font-size: clamp(30px, 3.4vw, 44px); font-weight: 700; letter-spacing: -.02em; color: #1f7a52; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.ba-number small { display: block; font-family: var(--font); font-size: 14px; font-weight: 600; color: #3a3a3c; letter-spacing: 0; margin-bottom: 4px; }
+.ba-say { font-family: var(--display); font-size: 21px; font-weight: 500; line-height: 1.3; }
+.ba-done { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 17px; }
+.ba-check { width: 26px; height: 26px; border-radius: 50%; background: #34c759; color: #fff; display: grid; place-items: center; font-size: 15px; }
+.ba-letter { color: #3a3a3c; font-size: 16px; }
+.ba-handle { position: absolute; top: 0; bottom: 0; left: var(--pos); width: 2px; margin-left: -1px; background: #fff; box-shadow: 0 0 12px rgba(0, 0, 0, .25); pointer-events: none; }
+.ba-handle span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 48px; height: 48px; border-radius: 50%; background: #fff; color: #1d1d1f; display: grid; place-items: center; font-size: 17px; font-weight: 700; letter-spacing: .1em; box-shadow: 0 6px 20px -6px rgba(0, 0, 0, .4); transition: transform .2s ease; }
+.ba:hover .ba-handle span { transform: translate(-50%, -50%) scale(1.08); }
+.ba-range { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; touch-action: pan-y; }
+.ba:has(.ba-range:focus-visible) { outline: 3px solid var(--focus); outline-offset: 4px; }
+
+/* The closing button carries the (demo) number, like a real service. */
+.call-cta-number { color: var(--muted); font-size: 15px; letter-spacing: .03em; font-variant-numeric: tabular-nums; margin-top: -6px; }
 
 .final { text-align: center; }
 .final .statement { margin: 0 auto; }
@@ -219,6 +265,23 @@ section { padding: 112px 0; }
   .promises { grid-template-columns: 1fr; gap: 32px; }
   .flow { grid-template-columns: 1fr; gap: 10px; }
   .arrow { width: 2px; height: 36px; justify-self: center; }
+  .arrow i { top: 0; left: -3px; }
+  .js .flow.in .arrow i { animation-name: flow-y; }
+  /* On a phone each side is laid out to fit its own half, so the 50/50 view reads on both sides. */
+  .ba { height: 500px; }
+  .ba-tag { font-size: 11px; top: 14px; }
+  .ba-before .ba-tag { left: 12px; } .ba-after .ba-tag { right: 12px; }
+  .ba-mess { left: 3%; width: 45%; top: 60px; height: 400px; }
+  .ba-card { width: 100%; font-size: 13px; padding: 9px 11px; border-radius: 12px; }
+  .ba-card span { font-size: 11.5px; }
+  .ba-card.c1 { left: 0; top: 0; } .ba-card.c2 { left: 4%; top: 88px; } .ba-card.c3 { left: 0; top: 196px; } .ba-card.c4 { left: 5%; top: 290px; }
+  .ba-calm { right: 3%; width: 44%; gap: 10px; }
+  .ba-number { font-size: 21px; }
+  .ba-number small { font-size: 11.5px; }
+  .ba-say { font-size: 15px; }
+  .ba-done { font-size: 13.5px; gap: 6px; align-items: flex-start; }
+  .ba-check { flex: none; width: 20px; height: 20px; font-size: 12px; }
+  .ba-letter { font-size: 13px; }
   .arrow::after { right: auto; left: -5px; top: auto; bottom: -2px; border: 6px solid transparent; border-top: 9px solid var(--brand); border-bottom: 0; }
 }
 @media (max-width: 420px) {
@@ -237,9 +300,11 @@ section { padding: 112px 0; }
 .phone-stage { perspective: 1600px; justify-self: center; position: relative; }
 .phone-stage::before {
   content: ""; position: absolute; inset: 8% -30% -4%; z-index: -1; border-radius: 50%;
-  background: radial-gradient(closest-side, color-mix(in srgb, var(--brand) 26%, transparent), transparent);
-  filter: blur(20px);
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--brand) 42%, transparent), transparent);
+  filter: blur(24px);
+  animation: stage-breathe 6s ease-in-out infinite;
 }
+@keyframes stage-breathe { 0%, 100% { opacity: .75; transform: scale(.96); } 50% { opacity: 1; transform: scale(1.04); } }
 .phone3d {
   --w: 300px; --rx: 6deg; --ry: -16deg;
   position: relative; width: var(--w); aspect-ratio: 9 / 19.2; transform-style: preserve-3d;
@@ -378,6 +443,7 @@ section { padding: 112px 0; }
 @media (prefers-reduced-motion: reduce) {
   .js .reveal, .js .handover .bubble { opacity: 1; transform: none; filter: none; transition: none; }
   .js .flow .arrow { transform: none; }
+  .js .flow.in .arrow i, .phone-stage::before { animation: none; }
   .phone3d, .phone-stage .phone3d.floating { animation: none; transition: none; }
   .js .phone-stage .phone3d.entering { transform: rotateX(var(--rx)) rotateY(var(--ry)); opacity: 1; }
   .call-cta-button::before, .call-cta-button::after, .ss-rings span { animation: none; opacity: 0; }

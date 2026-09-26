@@ -50,6 +50,20 @@
     p3t: "Langsam, und so oft Sie möchten.", p3b: "Bitten Sie um eine Wiederholung oder langsameres Sprechen. CallAssist nutzt Alltagssprache, eine Frage nach der anderen.",
     p4t: "Immer schriftlich.", p4b: "Jede Buchung hat eine Referenznummer und auf Wunsch einen Bestätigungsbrief per Post.",
     ecoTitle: "Das schafft kein Unternehmen allein.",
+    e1g: "Buchungszugang", e2g: "Vertrauen und Empfehlungen", e3g: "Finanzierung",
+    nodeGives: "Telefonleitung, Sprachassistent, Marina", callerGets: "Ein Anruf",
+    cmpTitle: "Dieselbe Besorgung. Zwei Wege.",
+    cmpLead: "Ziehen Sie den Regler: heute online buchen oder einmal anrufen.",
+    cmpRange: "Regler: heute und mit CallAssist vergleichen",
+    baBefore: "Heute", baAfter: "Mit CallAssist",
+    b1: "App herunterladen", b1s: "App Store · 214 MB",
+    b2: "Passwort festlegen", b2s: "Mindestens eine Zahl und ein Sonderzeichen",
+    b3: "Keine Termine verfügbar", b3s: "Bitte versuchen Sie es später erneut",
+    b4: "Sitzung abgelaufen", b4s: "Bitte melden Sie sich erneut an",
+    a1: "Eine kostenlose Nummer",
+    a2: "„Ich bin umgezogen und muss mich ummelden.“",
+    a3: "Gebucht: Dienstag, 9:40 Uhr",
+    a4: "Bestätigung per Brief",
     ecoLead: "CallAssist funktioniert nur, wenn drei Arten von Partnern mitmachen. Gemeinsam machen sie den Anruf lohnenswert.",
     e1t: "Dienstleister", e1b: "Bürgerämter, Hausarztpraxen und Bahnunternehmen lassen CallAssist im Auftrag der Anrufenden buchen.",
     e2t: "Wohlfahrtsverbände und Hausärzte", e2b: "Sie wissen, wer Hilfe braucht, und geben die Nummer an Menschen weiter, die ihnen vertrauen.",
@@ -66,6 +80,7 @@
   // English is the markup itself; remember it so switching back restores it.
   const EN = {};
   document.querySelectorAll("[data-i18n]").forEach((el) => { EN[el.dataset.i18n] = el.textContent; });
+  document.querySelectorAll("[data-i18n-label]").forEach((el) => { EN[el.dataset.i18nLabel] = el.getAttribute("aria-label"); });
 
   const params = new URLSearchParams(location.search);
   let lang = params.get("lang") || store.get("callassist-lang") || "en";
@@ -77,6 +92,10 @@
     document.querySelectorAll("[data-i18n]").forEach((el) => {
       const value = dict[el.dataset.i18n];
       if (value) el.textContent = value;
+    });
+    document.querySelectorAll("[data-i18n-label]").forEach((el) => {
+      const value = dict[el.dataset.i18nLabel];
+      if (value) el.setAttribute("aria-label", value);
     });
     document.querySelectorAll("[data-call-link]").forEach((a) => { a.href = `call.html?lang=${lang}`; });
     document.querySelectorAll(".lang button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
@@ -267,4 +286,38 @@
   reveal.forEach((el) => seen.observe(el));
   document.querySelectorAll(".handover, .flow").forEach((el) => seen.observe(el));
   document.querySelectorAll(".flow .arrow").forEach((a, i) => a.style.setProperty("--delay", `${0.3 + i * 0.35}s`));
+
+  // Before / after: the handle follows the slider (mouse, touch or arrow keys). When it first comes
+  // into view it sways once, to show that it can be dragged.
+  const ba = document.getElementById("ba");
+  if (ba) {
+    const range = ba.querySelector(".ba-range");
+    const setPos = (v) => ba.style.setProperty("--pos", `${v}%`);
+    let touched = false;
+    range.addEventListener("input", (e) => { if (e.isTrusted) touched = true; setPos(range.value); });
+    range.addEventListener("pointerdown", () => { touched = true; });
+    setPos(range.value);
+    if (!calm) {
+      const sway = new IntersectionObserver((entries) => {
+        if (!entries[0].isIntersecting) return;
+        sway.disconnect();
+        const keys = [[0, 50], [700, 70], [1500, 32], [2200, 50]];
+        const start = performance.now();
+        const ease = (k) => 0.5 - Math.cos(Math.PI * k) / 2;
+        const frame = (now) => {
+          if (touched) return;
+          const t = now - start;
+          const i = keys.findIndex(([at]) => at > t);
+          if (i === -1) { range.value = 50; setPos(50); return; }
+          const [t0, v0] = keys[i - 1], [t1, v1] = keys[i];
+          const v = v0 + (v1 - v0) * ease((t - t0) / (t1 - t0));
+          range.value = v.toFixed(1);
+          setPos(v.toFixed(1));
+          requestAnimationFrame(frame);
+        };
+        setTimeout(() => requestAnimationFrame(frame), 400);
+      }, { threshold: 0.6 });
+      sway.observe(ba);
+    }
+  }
 })();
