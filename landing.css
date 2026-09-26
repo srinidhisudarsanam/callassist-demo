@@ -332,6 +332,26 @@ section { padding: 112px 0; }
 .call-cta-button::before, .call-cta-button::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 2px solid rgba(52, 199, 89, .55); animation: ring 2.6s ease-out infinite; }
 .call-cta-button::after { animation-delay: 1.3s; }
 
+/* Copy lights up word by word as it scrolls past; unlit words stay readable (4.5:1 or better). */
+.lit .w { color: var(--faint); transition: color .4s ease; }
+.lit .w.on { color: var(--ink); }
+.human .lit .w { color: #86868b; }
+.human .lit .w.on { color: var(--night-ink); }
+
+/* The dark section opens from an inset card to the full width as it arrives. */
+.human { clip-path: inset(0 var(--inset, 0px) round var(--round, 0px)); }
+
+/* The closing line zooms into place; scroll sets its scale and opacity. */
+.final .statement { transform-origin: 50% 70%; will-change: transform, opacity; }
+
+/* Buttons give under the finger, and chevron links nudge towards where they lead. */
+.button, .nav-cta, .lang button, .call-cta-button { transition: transform .18s cubic-bezier(.2, .7, .2, 1), background-color .2s ease, box-shadow .15s ease; }
+.button:active, .nav-cta:active, .lang button:active { transform: scale(.96); }
+.call-cta:active .call-cta-button { transform: scale(.94); }
+.link::after { content: "›"; display: inline-block; margin-left: .3em; font-size: 1.15em; line-height: 1; transition: transform .25s cubic-bezier(.2, .7, .2, 1); }
+.link:hover { text-decoration: none; }
+.link:hover::after { transform: translateX(4px); }
+
 .nav { transition: box-shadow .3s ease, background-color .3s ease; }
 .nav.scrolled { box-shadow: 0 1px 0 color-mix(in srgb, var(--line) 80%, transparent), 0 8px 30px -20px rgba(0, 0, 0, .25); }
 
