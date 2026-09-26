@@ -6,7 +6,7 @@ The setup: laptop connected to the projector, Chrome open, sound on, microphone 
 
 Open `index.html`. Let the example call in the hero play.
 
-> "Around 2.1 million people in Germany have never been online, one in ten of those aged 65 to 74. Yet appointments and tickets increasingly start online. CallAssist turns that into a normal phone call. Let's call it."
+> "Around 2.1 million people aged 16 to 74 in Germany have never been online, one in ten of those aged 65 to 74, and people over 75 aren't even counted. Yet appointments and tickets increasingly start online. CallAssist turns that into a normal phone call. Let's call it."
 
 Scroll once past **How it works** and **Services**, then press **Try a call**.
 
