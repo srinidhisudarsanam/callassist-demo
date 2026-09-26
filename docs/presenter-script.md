@@ -29,7 +29,7 @@ If the room is noisy or the microphone fails, click the matching reply under **N
 
 ## Part 3: human help (1 minute)
 
-Press **Call again**. Say "I'd like a train ticket to Hamburg", then "Friday afternoon", then **"Sorry, I don't understand."**
+Press **Call again**. Say "I'd like a train ticket from Düsseldorf to Munich", then "Friday afternoon", then **"Sorry, I don't understand."**
 
 > "Whenever someone is confused or asks for a person, CallAssist hands over to a human adviser: here Marina, simulated. She already knows the destination and the time, so the caller doesn't have to repeat anything."
 

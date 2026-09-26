@@ -25,6 +25,7 @@ function toOptions(c, service = "I've moved and need to register my new address"
   c.say(service);
   if (c.state.stage === "city") c.say("Berlin");
   if (c.state.stage === "destination") c.say("To Hamburg");
+  if (c.state.stage === "origin") c.say("From Berlin");
   c.say("Tuesday morning, please");
   c.say("Yes, that's right");
   assert.equal(c.state.stage, "options");
@@ -184,10 +185,11 @@ test("one unrecognised reply is rephrased; a second hands over to the adviser", 
 test("unsupported city is explained honestly and never produces availability", () => {
   const c = call();
   c.say("I've moved and need to register my new address");
-  c.say("I live in Munich");
+  c.say("I've moved to Hamburg");
   assert.equal(c.state.stage, "city");
   assert.equal(c.state.options.length, 0);
-  assert.match(c.lastSaid(), /only works in Berlin/);
+  assert.match(c.lastSaid(), /doesn't work in Hamburg/);
+  assert.match(c.lastSaid(), /Düsseldorf, Munich and Frankfurt/);
   c.say("No");
   assert.equal(c.state.handler, "adviser");
   c.say("No");
@@ -241,22 +243,25 @@ test("train flow: destination, options with arrival times, booking", () => {
   const c = call();
   c.say("I'd like a train ticket to Hamburg");
   assert.equal(c.state.destination, "hamburg");
+  assert.equal(c.state.stage, "origin");
+  c.say("From Berlin");
   assert.equal(c.state.stage, "pref");
   c.say("Friday afternoon");
   c.say("Yes");
   assert.equal(c.state.options.length, 2);
-  assert.ok(c.state.options.every((o) => o.arrival && o.weekday === 5));
-  c.say("The 15:36 one");
-  assert.equal(c.state.selection.time, "15:36");
+  assert.ok(c.state.options.every((o) => o.arrival && o.weekday === 5 && /^(ICE|IC|EC)/.test(o.train)));
+  const second = c.state.options[1].time;
+  c.say(`The ${second} one`);
+  assert.equal(c.state.selection.time, second);
   c.say("Yes");
   assert.equal(bookings(c).length, 1);
 });
 
 test("train to an unsupported destination is refused", () => {
   const c = call();
-  c.say("I want to take the train to Stuttgart");
+  c.say("I want to take the train to Rostock");
   assert.equal(c.state.stage, "destination");
-  assert.match(c.lastSaid(), /can't book trains to Stuttgart/);
+  assert.match(c.lastSaid(), /can't book trains to Rostock/);
 });
 
 test("doctor flow mentions 112 and an emergency is redirected", () => {
@@ -385,4 +390,67 @@ test("GP options use the real practice addresses", () => {
   assert.equal(c.state.selection.place, 0);
   c.say("Where is it?");
   assert.ok(c.log.some((o) => o.type === "say" && /Hausvogteiplatz 3–4, 10117 Berlin/.test(o.text)));
+});
+
+const E_TRAINS = E.constants.TRAINS;
+
+test("address registration works in Düsseldorf, Munich and Frankfurt at the real offices", () => {
+  for (const [city, street] of [["Düsseldorf", "Willi-Becker-Allee 7"], ["Munich", "Ruppertstraße 19"], ["Frankfurt", "Zeil 3"]]) {
+    const c = call();
+    c.say("I've moved and need to register my new address");
+    c.say(city);
+    c.say("Tuesday morning");
+    c.say("Yes");
+    assert.equal(c.state.stage, "options");
+    assert.match(c.lastSaid(), new RegExp(street));
+    c.say("Where is it?");
+    assert.ok(c.log.some((o) => o.type === "say" && /^Both are at/.test(o.text)));
+  }
+});
+
+test("GP appointments in the new cities use the verified practices", () => {
+  for (const [city, street] of [["Düsseldorf", "Schadowstraße 71"], ["Munich", "Baldestraße 21"], ["Frankfurt", "Stiftstraße 14"]]) {
+    const c = call();
+    c.say(`I need an appointment with my doctor in ${city}`);
+    c.say("Monday afternoon");
+    c.say("Yes");
+    assert.match(c.lastSaid(), new RegExp(street));
+  }
+});
+
+test("the caller can say origin and destination in one sentence; options are real timetable trains", () => {
+  const c = call();
+  c.say("I'd like a train ticket from Düsseldorf to Munich");
+  assert.equal(c.state.origin, "dusseldorf");
+  assert.equal(c.state.destination, "munich");
+  c.say("Wednesday morning");
+  c.say("Yes");
+  const real = E_TRAINS.dusseldorf.munich.weekday.morning;
+  assert.equal(c.state.options[0].train, real[0].train);
+  assert.equal(c.state.options[0].time, real[0].dep);
+  assert.match(c.lastSaid(), new RegExp(real[0].train.replace(" ", " ")));
+  const no = real[1].train.split(" ")[1];
+  c.say(`The ICE ${no}, please`);
+  assert.equal(c.state.selection.train, real[1].train);
+});
+
+test("German: Fahrkarte von München nach Berlin", () => {
+  const c = call("de");
+  c.say("Ich möchte eine Fahrkarte von München nach Berlin");
+  assert.equal(c.state.origin, "munich");
+  assert.equal(c.state.destination, "berlin");
+  c.say("Am Samstag nachmittags");
+  c.say("Ja");
+  assert.equal(c.state.options[0].train, E_TRAINS.munich.berlin.saturday.afternoon[0].train);
+  assert.match(c.lastSaid(), /ab München Hauptbahnhof/);
+});
+
+test("trains from an unsupported city and to the same city are refused honestly", () => {
+  const c = call();
+  c.say("A train from Hamburg to Munich please");
+  assert.equal(c.state.stage, "origin");
+  assert.match(c.lastSaid(), /can't book trains from Hamburg yet/);
+  c.say("From Munich");
+  assert.equal(c.state.stage, "destination");
+  assert.match(c.lastSaid(), /same city/);
 });

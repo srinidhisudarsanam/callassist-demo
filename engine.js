@@ -3,10 +3,10 @@
    Every step takes the current call state and one event, and returns a new state plus a list of
    outputs ("say", "caller", "hold", "booked", "postal", "handler", "lang", "end") for the UI to play. */
 (function (root, factory) {
-  const api = factory();
+  const api = factory(root);
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.CallAssistEngine = api;
-})(typeof globalThis !== "undefined" ? globalThis : this, function () {
+})(typeof globalThis !== "undefined" ? globalThis : this, function (root) {
   "use strict";
 
   const TRANSFER_MS = 3400;
@@ -15,16 +15,16 @@
   // ---------------------------------------------------------------- reference data
 
   const CITIES = {
-    berlin: { en: "Berlin", de: "Berlin", words: ["berlin"] },
-    hamburg: { en: "Hamburg", de: "Hamburg", words: ["hamburg"], mins: 104 },
-    hanover: { en: "Hanover", de: "Hannover", words: ["hanover", "hannover"], mins: 99 },
-    leipzig: { en: "Leipzig", de: "Leipzig", words: ["leipzig"], mins: 76 },
-    dresden: { en: "Dresden", de: "Dresden", words: ["dresden"], mins: 118 },
-    frankfurt: { en: "Frankfurt", de: "Frankfurt", words: ["frankfurt"], mins: 238 },
-    cologne: { en: "Cologne", de: "Köln", words: ["cologne", "köln", "koeln", "koln"], mins: 262 },
-    munich: { en: "Munich", de: "München", words: ["munich", "münchen", "muenchen", "munchen"], mins: 241 },
-    stuttgart: { en: "Stuttgart", de: "Stuttgart", words: ["stuttgart"] },
-    dusseldorf: { en: "Düsseldorf", de: "Düsseldorf", words: ["düsseldorf", "dusseldorf", "duesseldorf"] },
+    berlin: { en: "Berlin", de: "Berlin", words: ["berlin"], station: { en: "Berlin Central Station", de: "Berlin Hauptbahnhof" } },
+    dusseldorf: { en: "Düsseldorf", de: "Düsseldorf", words: ["düsseldorf", "dusseldorf", "duesseldorf"], station: { en: "Düsseldorf Central Station", de: "Düsseldorf Hauptbahnhof" } },
+    munich: { en: "Munich", de: "München", words: ["munich", "münchen", "muenchen", "munchen"], station: { en: "Munich Central Station", de: "München Hauptbahnhof" } },
+    frankfurt: { en: "Frankfurt", de: "Frankfurt", words: ["frankfurt"], station: { en: "Frankfurt Central Station", de: "Frankfurt Hauptbahnhof" } },
+    hamburg: { en: "Hamburg", de: "Hamburg", words: ["hamburg"], station: { en: "Hamburg Central Station", de: "Hamburg Hauptbahnhof" } },
+    hanover: { en: "Hanover", de: "Hannover", words: ["hanover", "hannover"], station: { en: "Hanover Central Station", de: "Hannover Hauptbahnhof" } },
+    leipzig: { en: "Leipzig", de: "Leipzig", words: ["leipzig"], station: { en: "Leipzig Central Station", de: "Leipzig Hauptbahnhof" } },
+    dresden: { en: "Dresden", de: "Dresden", words: ["dresden"], station: { en: "Dresden Central Station", de: "Dresden Hauptbahnhof" } },
+    cologne: { en: "Cologne", de: "Köln", words: ["cologne", "köln", "koeln", "koln"], station: { en: "Cologne Central Station", de: "Köln Hauptbahnhof" } },
+    stuttgart: { en: "Stuttgart", de: "Stuttgart", words: ["stuttgart"], station: { en: "Stuttgart Central Station", de: "Stuttgart Hauptbahnhof" } },
     bremen: { en: "Bremen", de: "Bremen", words: ["bremen"] },
     potsdam: { en: "Potsdam", de: "Potsdam", words: ["potsdam"] },
     nuremberg: { en: "Nuremberg", de: "Nürnberg", words: ["nuremberg", "nürnberg", "nuernberg"] },
@@ -33,44 +33,54 @@
     rostock: { en: "Rostock", de: "Rostock", words: ["rostock"] },
     kiel: { en: "Kiel", de: "Kiel", words: ["kiel"] }
   };
+  // CallAssist books Citizens' Office and GP appointments in these cities, and trains leaving from them.
+  const SERVICE_CITIES = ["berlin", "dusseldorf", "munich", "frankfurt"];
+  const listCities = (lang) => (lang === "de" ? "Berlin, Düsseldorf, München und Frankfurt" : "Berlin, Düsseldorf, Munich and Frankfurt");
+  const listStations = (lang) => (lang === "de" ? "Berlin, Hamburg, Hannover, Leipzig, Dresden, Düsseldorf, Köln, Frankfurt, Stuttgart und München" : "Berlin, Hamburg, Hanover, Leipzig, Dresden, Düsseldorf, Cologne, Frankfurt, Stuttgart and Munich");
 
-  // Real Berlin Citizens' Office locations; the appointments offered at them are simulated.
+  // Real Citizens' Offices and GP practices (checked on the cities' and practices' own websites, September 2026).
+  // Only the free appointment times offered at them are simulated.
   const PLACES = {
-    address: [
-      {
-        key: "mitte",
-        spoken: { en: "at the Citizens' Office in Mitte Town Hall, Karl-Marx-Allee 31", de: "im Bürgeramt Rathaus Mitte, Karl-Marx-Allee 31" },
-        name: { en: "Citizens' Office, Mitte Town Hall", de: "Bürgeramt Rathaus Mitte" },
-        street: "Karl-Marx-Allee 31, 10178 Berlin"
-      },
-      {
-        key: "schoeneberg",
-        spoken: { en: "at the Citizens' Office in Schöneberg Town Hall, John-F.-Kennedy-Platz 1", de: "im Bürgeramt Rathaus Schöneberg, John-F.-Kennedy-Platz 1" },
-        name: { en: "Citizens' Office, Schöneberg Town Hall", de: "Bürgeramt Rathaus Schöneberg" },
-        street: "John-F.-Kennedy-Platz 1, 10825 Berlin"
-      }
-    ],
-    // Real GP practices (medical care centres); the free appointment times offered there are simulated.
-    doctor: [
-      {
-        key: "mitte",
-        spoken: { en: "at the Medicover medical centre in Berlin-Mitte, Hausvogteiplatz 3", de: "im MVZ Medicover Berlin-Mitte, Hausvogteiplatz 3" },
-        name: { en: "Medicover medical centre, Berlin-Mitte", de: "MVZ Medicover Berlin-Mitte" },
-        street: "Hausvogteiplatz 3–4, 10117 Berlin"
-      },
-      {
-        key: "schoeneberg",
-        spoken: { en: "at the meraneum GP practice in Schöneberg, Bozener Straße 13", de: "in der Hausarztpraxis MVZ meraneum in Schöneberg, Bozener Straße 13" },
-        name: { en: "meraneum GP practice, Schöneberg", de: "MVZ meraneum, Schöneberg" },
-        street: "Bozener Straße 13/14, 10825 Berlin"
-      }
-    ]
+    address: {
+      berlin: [
+        { words: ["mitte", "karl-marx-allee", "alexanderplatz"], spoken: { en: "at the Citizens' Office in Mitte Town Hall, Karl-Marx-Allee 31", de: "im Bürgeramt Rathaus Mitte, Karl-Marx-Allee 31" }, name: { en: "Citizens' Office, Mitte Town Hall", de: "Bürgeramt Rathaus Mitte" }, street: "Karl-Marx-Allee 31, 10178 Berlin" },
+        { words: ["schöneberg", "schoeneberg", "schoneberg", "kennedy", "john-f.-kennedy-platz"], spoken: { en: "at the Citizens' Office in Schöneberg Town Hall, John-F.-Kennedy-Platz 1", de: "im Bürgeramt Rathaus Schöneberg, John-F.-Kennedy-Platz 1" }, name: { en: "Citizens' Office, Schöneberg Town Hall", de: "Bürgeramt Rathaus Schöneberg" }, street: "John-F.-Kennedy-Platz 1, 10825 Berlin" }
+      ],
+      dusseldorf: [
+        { words: ["willi-becker-allee", "dienstleistungszentrum", "service centre"], spoken: { en: "at the Citizens' Office in the city service centre, Willi-Becker-Allee 7", de: "im Bürgerbüro im Dienstleistungszentrum, Willi-Becker-Allee 7" }, name: { en: "Citizens' Office, city service centre", de: "Bürgerbüro im Dienstleistungszentrum" }, street: "Willi-Becker-Allee 7, 40227 Düsseldorf" }
+      ],
+      munich: [
+        { words: ["ruppertstraße", "ruppertstrasse"], spoken: { en: "at the Citizens' Office on Ruppertstraße 19", de: "im Bürgerbüro Ruppertstraße 19" }, name: { en: "Citizens' Office Ruppertstraße", de: "Bürgerbüro Ruppertstraße" }, street: "Ruppertstraße 19, 80337 München" }
+      ],
+      frankfurt: [
+        { words: ["zeil", "zentrales"], spoken: { en: "at the central Citizens' Office, Zeil 3", de: "im Zentralen Bürgeramt, Zeil 3" }, name: { en: "Central Citizens' Office", de: "Zentrales Bürgeramt" }, street: "Zeil 3, 60313 Frankfurt am Main" }
+      ]
+    },
+    doctor: {
+      berlin: [
+        { words: ["mitte", "medicover", "hausvogteiplatz"], spoken: { en: "at the Medicover medical centre in Berlin-Mitte, Hausvogteiplatz 3", de: "im MVZ Medicover Berlin-Mitte, Hausvogteiplatz 3" }, name: { en: "Medicover medical centre, Berlin-Mitte", de: "MVZ Medicover Berlin-Mitte" }, street: "Hausvogteiplatz 3–4, 10117 Berlin" },
+        { words: ["schöneberg", "schoeneberg", "schoneberg", "meraneum", "bozener"], spoken: { en: "at the meraneum GP practice in Schöneberg, Bozener Straße 13", de: "in der Hausarztpraxis MVZ meraneum in Schöneberg, Bozener Straße 13" }, name: { en: "meraneum GP practice, Schöneberg", de: "MVZ meraneum, Schöneberg" }, street: "Bozener Straße 13/14, 10825 Berlin" }
+      ],
+      dusseldorf: [
+        { words: ["schadowstraße", "schadowstrasse", "hausarztzentrum"], spoken: { en: "at the GP centre in Düsseldorf city centre, Schadowstraße 71", de: "im Hausarztzentrum Düsseldorf-Stadtmitte, Schadowstraße 71" }, name: { en: "GP centre, Düsseldorf city centre", de: "Hausarztzentrum Düsseldorf-Stadtmitte" }, street: "Schadowstraße 71, 40212 Düsseldorf" }
+      ],
+      munich: [
+        { words: ["baldestraße", "baldestrasse", "baldeplatz"], spoken: { en: "at the Hausarztpraxis München GP practice, Baldestraße 21", de: "in der Hausarztpraxis München, Baldestraße 21" }, name: { en: "Hausarztpraxis München (GP practice), Baldeplatz", de: "Hausarztpraxis München, Baldeplatz" }, street: "Baldestraße 21, 80469 München" }
+      ],
+      frankfurt: [
+        { words: ["medicus", "stiftstraße", "stiftstrasse"], spoken: { en: "at the Medicus medical centre, Stiftstraße 14", de: "im MEDICUS MVZ Frankfurt, Stiftstraße 14" }, name: { en: "Medicus medical centre, Frankfurt", de: "MEDICUS MVZ Frankfurt" }, street: "Stiftstraße 14, 60313 Frankfurt am Main" }
+      ]
+    }
   };
+  const placeOf = (o) => PLACES[o.service][o.city][o.place];
+
+  // Real long-distance connections (train numbers and scheduled times) for a typical weekday, Saturday and Sunday,
+  // taken from the published timetable; see trains.js.
+  const TRAINS = (typeof module === "object" && module.exports && typeof require === "function") ? require("./trains.js") : ((root && root.CALLASSIST_TRAINS) || {});
 
   const TIMES = {
     address: { morning: ["09:40", "11:20"], afternoon: ["14:10", "15:30"] },
-    doctor: { morning: ["08:45", "10:30"], afternoon: ["14:30", "16:15"] },
-    train: { morning: ["07:36", "09:36"], afternoon: ["13:36", "15:36"] }
+    doctor: { morning: ["08:45", "10:30"], afternoon: ["14:30", "16:15"] }
   };
 
   const WEEKDAYS = {
@@ -125,8 +135,8 @@
     fieldTime: words(["time", "time of day", "uhrzeit", "tageszeit", "zeit"]),
     fieldCity: words(["city", "town", "stadt", "ort"]),
     fieldDestination: words(["destination", "where", "ziel", "reiseziel", "wohin"]),
-    placeMitte: words(["mitte", "karl-marx-allee", "alexanderplatz", "medicover", "hausvogteiplatz"]),
-    placeSchoeneberg: words(["schöneberg", "schoeneberg", "schoneberg", "kennedy", "john-f.-kennedy-platz", "meraneum", "bozener"])
+    fieldOrigin: words(["from", "leaving", "departure", "starting", "abfahrt", "abfahrtsort", "start", "von wo"]),
+    noop: /$^/
   };
   const DAY_LEX = [
     words(["monday*", "montag*"]), words(["tuesday*", "dienstag*"]), words(["wednesday*", "mittwoch*"]),
@@ -158,12 +168,14 @@
       }
     }
     cityHits.sort((a, b) => a.index - b.index);
-    const preferred = cityHits.find((c) => c.to) || cityHits.find((c) => !c.from) || cityHits[0];
-    f.city = preferred ? preferred.key : null;
-    const nonBerlin = cityHits.filter((c) => c.key !== "berlin");
-    const dest = nonBerlin.find((c) => c.to) || nonBerlin.find((c) => !c.from) || nonBerlin[0];
-    f.dest = dest ? dest.key : null;
-    f.onlyBerlin = cityHits.length > 0 && !nonBerlin.length;
+    const fromHit = cityHits.find((c) => c.from);
+    const toHit = cityHits.find((c) => c.to);
+    const plain = cityHits.filter((c) => !c.from && !c.to);
+    f.from = fromHit ? fromHit.key : null;
+    f.to = toHit ? toHit.key : null;
+    f.plainCities = plain.map((c) => c.key);
+    // For an office or a practice, the city someone moved *to* (or simply named) counts.
+    f.city = (toHit || plain[0] || fromHit || {}).key || null;
 
     f.unsure = LEX.unsure.test(t);
     f.no = LEX.no.test(t) || LEX.done.test(t);
@@ -180,7 +192,6 @@
     f.option = first && !second ? 0 : second && !first ? 1 : null;
     const time = /(?<!\d)(\d{1,2})[:.](\d{2})(?!\d)/.exec(t);
     f.time = time ? `${time[1].padStart(2, "0")}:${time[2]}` : null;
-    f.place = LEX.placeMitte.test(t) ? "mitte" : LEX.placeSchoeneberg.test(t) ? "schoeneberg" : null;
 
     f.person = LEX.person.test(t);
     f.confused = LEX.confused.test(t);
@@ -197,7 +208,7 @@
     f.postal = LEX.postal.test(t);
     f.phone = LEX.phone.test(t);
     f.fields = {
-      day: LEX.fieldDay.test(t), time: LEX.fieldTime.test(t), city: LEX.fieldCity.test(t), destination: LEX.fieldDestination.test(t)
+      day: LEX.fieldDay.test(t), time: LEX.fieldTime.test(t), city: LEX.fieldCity.test(t), destination: LEX.fieldDestination.test(t), origin: LEX.fieldOrigin.test(t)
     };
 
     const bare = t.trim();
@@ -227,7 +238,29 @@
     return `${String(Math.floor(total / 60) % 24).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
   }
 
+  const dayType = (d) => (d <= 5 ? "weekday" : d === 6 ? "saturday" : "sunday");
+  function dateOfWeekday(s, day) {
+    const date = nextMonday(s.now);
+    date.setUTCDate(date.getUTCDate() + day - 1);
+    return iso(date);
+  }
+
+  function buildTrainOptions(s) {
+    const day = s.day || 2;
+    const table = ((TRAINS[s.origin] || {})[s.destination] || {})[dayType(day)] || {};
+    const morning = table.morning || [], afternoon = table.afternoon || [];
+    let picks;
+    if (s.tod === "morning") picks = morning.concat(afternoon);
+    else if (s.tod === "afternoon") picks = afternoon.concat(morning);
+    else picks = [morning[0], afternoon[0]].filter(Boolean).concat(morning.slice(1), afternoon.slice(1));
+    return picks.slice(0, 2).map((p, index) => ({
+      index, service: "train", date: dateOfWeekday(s, day), weekday: day, time: p.dep, arrival: p.arr, arrDays: p.days || 0,
+      train: p.train, change: p.change || null, train2: p.train2 || null, origin: s.origin, destination: s.destination
+    }));
+  }
+
   function buildOptions(s) {
+    if (s.service === "train") return buildTrainOptions(s);
     const monday = nextMonday(s.now);
     const times = TIMES[s.service];
     let specs;
@@ -244,14 +277,7 @@
     return specs.map((spec, index) => {
       const date = new Date(monday);
       date.setUTCDate(date.getUTCDate() + spec.day - 1);
-      const option = { index, service: s.service, date: iso(date), weekday: spec.day, time: spec.time };
-      if (s.service === "train") {
-        option.destination = s.destination;
-        option.arrival = addMinutes(spec.time, CITIES[s.destination].mins);
-      } else {
-        option.place = index;
-      }
-      return option;
+      return { index, service: s.service, date: iso(date), weekday: spec.day, time: spec.time, city: s.city, place: index % PLACES[s.service][s.city].length };
     });
   }
 
@@ -264,39 +290,53 @@
     return lang === "de" ? `${Number(h)}:${m} Uhr` : `${Number(h)}:${m}`;
   }
   const cityName = (key, lang) => (key ? CITIES[key][lang] : "");
+  const stationOf = (key, lang) => (key && CITIES[key].station ? CITIES[key].station[lang] : cityName(key, lang));
+  // Timetable station names ("Frankfurt(Main)Hbf", "Hannover Hbf") read naturally aloud.
+  function stationName(raw, lang) {
+    let name = String(raw || "").replace("(Main)", " ").replace("(M)", "").replace(/\s+/g, " ").trim();
+    if (/Flughafen/.test(name)) return lang === "de" ? "Frankfurt Flughafen" : "Frankfurt Airport";
+    if (/ ?Hbf$/.test(name)) name = name.replace(/ ?Hbf$/, lang === "de" ? " Hauptbahnhof" : " Central Station");
+    if (lang === "en") name = name.replace("Köln", "Cologne").replace("München", "Munich").replace("Hannover", "Hanover").replace("Nürnberg", "Nuremberg");
+    return name;
+  }
+  const trainNo = (name) => String(name || "").replace(/\s+/g, " ");
 
   function describeOption(o, lang) {
     const date = formatDate(o.date, lang);
     if (o.service === "train") {
       const dest = cityName(o.destination, lang);
+      const next = o.arrDays ? (lang === "de" ? " am nächsten Tag" : " the next day") : "";
+      const change = o.change
+        ? (lang === "de" ? `, mit einem Umstieg in ${stationName(o.change, "de")} in den ${trainNo(o.train2)}` : `, with one change in ${stationName(o.change, "en")} to the ${trainNo(o.train2)}`)
+        : (lang === "de" ? ", ohne Umsteigen" : ", direct");
       return lang === "de"
-        ? `${date}: der ICE ab Berlin Hauptbahnhof um ${formatTime(o.time, lang)}, Ankunft in ${dest} um ${formatTime(o.arrival, lang)}, ohne Umsteigen`
-        : `${date}: the ICE leaving Berlin Central Station at ${formatTime(o.time, lang)}, arriving in ${dest} at ${formatTime(o.arrival, lang)}, with no changes`;
+        ? `${date}: der ${trainNo(o.train)} ab ${stationOf(o.origin, "de")} um ${formatTime(o.time, lang)}, Ankunft in ${dest} um ${formatTime(o.arrival, lang)}${next}${change}`
+        : `${date}: the ${trainNo(o.train)} from ${stationOf(o.origin, "en")} at ${formatTime(o.time, lang)}, arriving in ${dest} at ${formatTime(o.arrival, lang)}${next}${change}`;
     }
-    const place = PLACES[o.service][o.place];
+    const place = placeOf(o);
     return lang === "de" ? `${date} um ${formatTime(o.time, lang)} ${place.spoken.de}` : `${date} at ${formatTime(o.time, lang)}, ${place.spoken.en}`;
   }
   function shortOption(o, lang) {
     const date = formatDate(o.date, lang);
     if (o.service === "train") {
       return lang === "de"
-        ? `${date}, der Zug um ${formatTime(o.time, lang)} nach ${cityName(o.destination, lang)}`
-        : `${date}, the ${formatTime(o.time, lang)} train to ${cityName(o.destination, lang)}`;
+        ? `${date}, der ${trainNo(o.train)} um ${formatTime(o.time, lang)} nach ${cityName(o.destination, lang)}`
+        : `${date}, the ${trainNo(o.train)} at ${formatTime(o.time, lang)} to ${cityName(o.destination, lang)}`;
     }
-    return `${date}, ${formatTime(o.time, lang)}, ${PLACES[o.service][o.place].name[lang]}`;
+    return `${date}, ${formatTime(o.time, lang)}, ${placeOf(o).name[lang]}`;
   }
   // Structured version for the appointment card and letter.
   function optionCard(o, lang) {
     const date = formatDate(o.date, lang);
     if (o.service === "train") {
-      const dest = cityName(o.destination, lang);
+      const route = o.change ? (lang === "de" ? `Umstieg in ${stationName(o.change, "de")} (${trainNo(o.train2)})` : `change at ${stationName(o.change, "en")} (${trainNo(o.train2)})`) : (lang === "de" ? "ohne Umsteigen" : "direct");
       return {
-        title: lang === "de" ? `Berlin Hbf → ${dest} Hbf` : `Berlin Central Station → ${dest}`,
+        title: `${stationOf(o.origin, lang)} → ${stationOf(o.destination, lang)}`,
         when: `${date}`,
-        detail: lang === "de" ? `ICE, ab ${formatTime(o.time, lang)}, an ${formatTime(o.arrival, lang)}, ohne Umsteigen` : `ICE, departs ${formatTime(o.time, lang)}, arrives ${formatTime(o.arrival, lang)}, direct`
+        detail: lang === "de" ? `${trainNo(o.train)}, ab ${formatTime(o.time, lang)}, an ${formatTime(o.arrival, lang)}, ${route}` : `${trainNo(o.train)}, departs ${formatTime(o.time, lang)}, arrives ${formatTime(o.arrival, lang)}, ${route}`
       };
     }
-    const place = PLACES[o.service][o.place];
+    const place = placeOf(o);
     return { title: place.name[lang], when: `${date}, ${formatTime(o.time, lang)}`, detail: place.street };
   }
 
@@ -329,11 +369,11 @@
   }
 
   function whatPhrase(s) {
-    const dest = cityName(s.destination, s.lang);
+    const dest = cityName(s.destination, s.lang), origin = cityName(s.origin, s.lang), city = cityName(s.city, s.lang);
     if (s.lang === "de") {
-      return { address: "einen Termin in einem Berliner Bürgeramt, um Ihre neue Adresse anzumelden", doctor: "einen Termin in einer Hausarztpraxis in Berlin", train: `eine Fahrkarte von Berlin nach ${dest}` }[s.service];
+      return { address: `einen Termin im Bürgeramt in ${city}, um Ihre neue Adresse anzumelden`, doctor: `einen Termin in einer Hausarztpraxis in ${city}`, train: `eine Fahrkarte von ${origin} nach ${dest}` }[s.service];
     }
-    return { address: "an appointment at a Berlin Citizens' Office to register your new address", doctor: "an appointment at a GP practice in Berlin", train: `a train ticket from Berlin to ${dest}` }[s.service];
+    return { address: `an appointment at the Citizens' Office in ${city} to register your new address`, doctor: `an appointment at a GP practice in ${city}`, train: `a train ticket from ${origin} to ${dest}` }[s.service];
   }
 
   function adviserContext(s) {
@@ -343,8 +383,9 @@
       doctor: de ? "Sie möchten einen Termin in einer Hausarztpraxis" : "you'd like a GP appointment",
       train: de ? "Sie möchten eine Fahrkarte" : "you'd like a train ticket"
     }[s.service];
+    if (s.service === "train" && s.origin) text += (de ? " ab " : " from ") + cityName(s.origin, s.lang);
     if (s.service === "train" && s.destination) text += (de ? " nach " : " to ") + cityName(s.destination, s.lang);
-    if (s.service !== "train" && s.city) text += de ? " in Berlin" : " in Berlin";
+    if (s.service !== "train" && s.city) text += " in " + cityName(s.city, s.lang);
     if (s.day || s.tod) text += ", " + whenPhrase(s);
     if (s.selection) text += de ? `, und Sie haben ${shortOption(s.selection, "de")} gewählt` : `, and you've picked ${shortOption(s.selection, "en")}`;
     return text;
@@ -359,9 +400,11 @@
       ack_address: "Of course. I'll help you register your new address.",
       ack_doctor: "Of course. I'll book you an appointment at a GP practice. If it's an emergency, please hang up and call 112.",
       ack_train: "Of course. I'll book a train ticket for you.",
-      askCity: (s) => (s.service === "doctor" ? "Which city should the practice be in?" : "Which city do you live in now?"),
+      askCity: (s) => (s.service === "doctor" ? "Which city should the practice be in?" : "Which city have you moved to?"),
       askCityShort: "And which city are you in?",
-      askDestination: "Where would you like to travel to? The train would leave from Berlin Central Station.",
+      askDestination: "Where would you like to travel to?",
+      askOrigin: "And where will you be leaving from? I can book trains from Berlin, Düsseldorf, Munich and Frankfurt.",
+      askOriginShort: "And where are you leaving from?",
       askDestinationShort: "And where are you off to?",
       askPref: (s) => (s.service === "train" ? "Which day next week would you like to travel, and would you rather leave in the morning or the afternoon?" : "Which day next week would suit you, and do you prefer the morning or the afternoon?"),
       askPrefShort: "Which day would suit you? And is morning or afternoon better?",
@@ -371,9 +414,9 @@
       askChangeShort: "No problem. What would you like to change?",
       updated: "Thank you, I've changed that.",
       checking: (s) => ({
-        address: "Thank you. I'm checking free appointments at the Berlin Citizens' Offices now. One moment, please.",
-        doctor: "Thank you. I'm checking free appointments at GP practices in Berlin now. One moment, please.",
-        train: `Thank you. I'm checking trains from Berlin to ${cityName(s.destination, "en")} now. One moment, please.`
+        address: `Thank you. I'm checking free appointments at the Citizens' Office in ${cityName(s.city, "en")} now. One moment, please.`,
+        doctor: `Thank you. I'm checking free appointments at GP practices in ${cityName(s.city, "en")} now. One moment, please.`,
+        train: `Thank you. I'm checking trains from ${cityName(s.origin, "en")} to ${cityName(s.destination, "en")} now. One moment, please.`
       })[s.service],
       lookAgain: "No problem, I'll look again.",
       checkingShort: (s) => (s.service === "train" ? "Let me just look up the trains for you. Bear with me a second." : "Let me just see what's free. Bear with me a second."),
@@ -389,7 +432,7 @@
       askPostal: (s) => (s.service === "train" ? "Shall I send the ticket to your home by post?" : "Would you also like a confirmation letter by post?"),
       postalYes: (s) => `I'll send the ${s.service === "train" ? "ticket" : "letter"} to the address registered with CallAssist. It usually arrives within two working days. Here are the details once more: ${describeOption(s.booking, "en")}.`,
       postalNo: (s) => (s.service === "train"
-        ? `Alright. You can pick up your ticket at the travel centre in Berlin Central Station; just give them your reference number, ${spellReference(s.booking.ref)}. Here are the details once more: ${describeOption(s.booking, "en")}.`
+        ? `Alright. You can pick up your ticket at the travel centre in ${stationOf(s.booking.origin, "en")}; just give them your reference number, ${spellReference(s.booking.ref)}. Here are the details once more: ${describeOption(s.booking, "en")}.`
         : `Alright, no letter. Here are the details once more: ${describeOption(s.booking, "en")}. Your reference number is ${spellReference(s.booking.ref)}. Call again any time and I'll repeat them.`),
       askPostalAgain: "Would you like it by post, or is the phone enough?",
       askMore: "Is there anything else I can do for you?",
@@ -406,20 +449,24 @@
       emergency: "If this is a medical emergency, please hang up now and call 112. If it isn't urgent, I'm happy to book you a GP appointment.",
       banking: "I'm sorry, CallAssist doesn't do banking, and I will never ask for your bank details. I can help with a new address, a GP appointment, or a train ticket.",
       notYet: "I'm sorry, I can't help with that yet. Today I can help with a new address, a GP appointment, or a train ticket.",
-      cityUnsupported: (city) => `I'm sorry, CallAssist only works in Berlin so far, so I can't book anything in ${city} yet. Is your appointment in Berlin? If not, I can connect you to an adviser.`,
-      cityUnsupportedAdviser: (city) => `I'm sorry, we only cover Berlin so far. I've noted that you asked about ${city}. Is Berlin all right for you, or shall we leave it for today?`,
+      cityUnsupported: (city) => `I'm sorry, CallAssist doesn't work in ${city} yet. At the moment I can book in ${listCities("en")}. Is it one of those? If not, I can connect you to an adviser.`,
+      cityUnsupportedAdviser: (city) => `I'm sorry, we're only in ${listCities("en")} so far. I've noted that you asked about ${city}. Would one of those work, or shall we leave it for today?`,
       cityDeclined: "I understand. Then I'm afraid I can't book this today, but I've passed your request on to our team.",
-      destUnsupported: (city) => `I'm sorry, I can't book trains to ${city} yet. I can book direct trains from Berlin to Hamburg, Hanover, Leipzig, Dresden, Frankfurt, Cologne or Munich. Where would you like to go?`,
-      fromBerlin: "The train leaves from Berlin. Where would you like to go?",
+      destUnsupported: (city) => `I'm sorry, I can't book trains to ${city} yet. I can book trains to ${listStations("en")}. Where would you like to go?`,
+      originUnsupported: (city) => `I'm sorry, I can't book trains from ${city} yet, only from ${listCities("en")}. Which of those are you leaving from?`,
+      sameCity: "That would be the same city twice. Where would you like to go?",
+      noTrains: "I'm sorry, I couldn't find a suitable train for that. Would another day or time of day work?",
       weekend: (s) => (s.service === "doctor" ? "GP practices are closed at the weekend. Which weekday would suit you?" : "The Citizens' Offices are closed at the weekend. Which weekday would suit you?"),
       langSwitched: "Of course, let's continue in English.",
       whereLater: "I'll give you the exact address when I read out the options in a moment.",
-      whereOptions: (s) => (s.service === "train"
-        ? "All trains leave from Berlin Central Station. The platform is printed on your ticket."
-        : `The first is at ${PLACES[s.service][0].name.en}, ${PLACES[s.service][0].street}. The second is at ${PLACES[s.service][1].name.en}, ${PLACES[s.service][1].street}.`),
+      whereOptions: (s) => {
+        if (s.service === "train") return `Your train leaves from ${stationOf(s.origin, "en")}. The platform is printed on your ticket.`;
+        const [a, b] = s.options.map(placeOf);
+        return a === b ? `Both are at ${a.name.en}, ${a.street}.` : `The first is at ${a.name.en}, ${a.street}. The second is at ${b.name.en}, ${b.street}.`;
+      },
       whereChosen: (o) => (o.service === "train"
-        ? "Your train leaves from Berlin Central Station. The platform is printed on your ticket."
-        : `It's at ${PLACES[o.service][o.place].name.en}, ${PLACES[o.service][o.place].street}.`),
+        ? `Your train leaves from ${stationOf(o.origin, "en")}. The platform is printed on your ticket.`
+        : `It's at ${placeOf(o).name.en}, ${placeOf(o).street}.`),
       bring: (s) => ({ address: "Please bring your ID card or passport, and the confirmation from your landlord that you've moved in.", doctor: "Just bring your health insurance card.", train: "Just bring your ticket and a photo ID." })[s.service],
       cost: (s) => ({ address: "Registering your address is free of charge, and CallAssist is free for you too.", doctor: "The appointment is covered by your health insurance, and CallAssist is free for you.", train: "CallAssist is free for you. The fare is on the invoice that comes with your ticket." })[s.service],
       questionFirst: "Before I book anything, I want to make sure: shall I book it now, yes or no?"
@@ -432,9 +479,11 @@
       ack_address: "Gern, ich helfe Ihnen bei der Anmeldung Ihrer neuen Adresse.",
       ack_doctor: "Gern, ich vereinbare einen Termin in einer Hausarztpraxis für Sie. Im Notfall legen Sie bitte auf und rufen die 112 an.",
       ack_train: "Gern, ich buche eine Bahnfahrkarte für Sie.",
-      askCity: (s) => (s.service === "doctor" ? "In welcher Stadt soll die Praxis sein?" : "In welcher Stadt wohnen Sie jetzt?"),
+      askCity: (s) => (s.service === "doctor" ? "In welcher Stadt soll die Praxis sein?" : "In welche Stadt sind Sie gezogen?"),
       askCityShort: "Und in welcher Stadt sind Sie?",
-      askDestination: "Wohin möchten Sie fahren? Der Zug fährt ab Berlin Hauptbahnhof.",
+      askDestination: "Wohin möchten Sie fahren?",
+      askOrigin: "Und von wo fahren Sie los? Ich buche Züge ab Berlin, Düsseldorf, München und Frankfurt.",
+      askOriginShort: "Und von wo fahren Sie los?",
       askDestinationShort: "Und wohin soll's gehen?",
       askPref: (s) => (s.service === "train" ? "An welchem Tag nächste Woche möchten Sie fahren, und lieber vormittags oder nachmittags?" : "Welcher Tag in der nächsten Woche passt Ihnen, und ist Ihnen der Vormittag oder der Nachmittag lieber?"),
       askPrefShort: "Welcher Tag passt Ihnen denn? Und lieber vormittags oder nachmittags?",
@@ -444,9 +493,9 @@
       askChangeShort: "Kein Problem. Was möchten Sie ändern?",
       updated: "Danke, das habe ich geändert.",
       checking: (s) => ({
-        address: "Danke. Ich prüfe jetzt freie Termine bei den Berliner Bürgerämtern. Einen Moment bitte.",
-        doctor: "Danke. Ich prüfe jetzt freie Termine bei Hausarztpraxen in Berlin. Einen Moment bitte.",
-        train: `Danke. Ich suche jetzt Verbindungen von Berlin nach ${cityName(s.destination, "de")}. Einen Moment bitte.`
+        address: `Danke. Ich prüfe jetzt freie Termine beim Bürgeramt in ${cityName(s.city, "de")}. Einen Moment bitte.`,
+        doctor: `Danke. Ich prüfe jetzt freie Termine bei Hausarztpraxen in ${cityName(s.city, "de")}. Einen Moment bitte.`,
+        train: `Danke. Ich suche jetzt Verbindungen von ${cityName(s.origin, "de")} nach ${cityName(s.destination, "de")}. Einen Moment bitte.`
       })[s.service],
       lookAgain: "Kein Problem, ich schaue noch einmal nach.",
       checkingShort: (s) => (s.service === "train" ? "Ich schaue mal kurz nach den Zügen. Einen kleinen Moment." : "Ich schaue mal kurz, was frei ist. Einen kleinen Moment."),
@@ -462,7 +511,7 @@
       askPostal: (s) => (s.service === "train" ? "Soll ich Ihnen die Fahrkarte per Post nach Hause schicken?" : "Möchten Sie zusätzlich eine Bestätigung per Post?"),
       postalYes: (s) => `Ich schicke ${s.service === "train" ? "die Fahrkarte" : "den Brief"} an die Adresse, die bei CallAssist hinterlegt ist. Das dauert normalerweise zwei Werktage. Hier noch einmal die Details: ${describeOption(s.booking, "de")}.`,
       postalNo: (s) => (s.service === "train"
-        ? `In Ordnung. Sie können die Fahrkarte im Reisezentrum am Berliner Hauptbahnhof abholen; nennen Sie dort einfach Ihre Referenznummer, ${spellReference(s.booking.ref)}. Hier noch einmal die Details: ${describeOption(s.booking, "de")}.`
+        ? `In Ordnung. Sie können die Fahrkarte im Reisezentrum im ${stationOf(s.booking.origin, "de")} abholen; nennen Sie dort einfach Ihre Referenznummer, ${spellReference(s.booking.ref)}. Hier noch einmal die Details: ${describeOption(s.booking, "de")}.`
         : `In Ordnung, dann ohne Brief. Hier noch einmal die Details: ${describeOption(s.booking, "de")}. Ihre Referenznummer ist ${spellReference(s.booking.ref)}. Rufen Sie jederzeit wieder an, dann wiederhole ich alles.`),
       askPostalAgain: "Möchten Sie es per Post, oder reicht Ihnen das Telefon?",
       askMore: "Kann ich sonst noch etwas für Sie tun?",
@@ -479,20 +528,25 @@
       emergency: "Wenn es ein medizinischer Notfall ist, legen Sie bitte jetzt auf und rufen Sie die 112 an. Wenn es nicht dringend ist, vereinbare ich gern einen Hausarzttermin für Sie.",
       banking: "Das tut mir leid, CallAssist erledigt keine Bankgeschäfte, und ich frage Sie niemals nach Ihren Bankdaten. Ich kann eine neue Adresse anmelden, einen Hausarzttermin vereinbaren oder eine Bahnfahrkarte buchen.",
       notYet: "Das tut mir leid, dabei kann ich noch nicht helfen. Heute kann ich eine neue Adresse anmelden, einen Hausarzttermin vereinbaren oder eine Bahnfahrkarte buchen.",
-      cityUnsupported: (city) => `Das tut mir leid, CallAssist gibt es bisher nur in Berlin, deshalb kann ich in ${city} noch nichts buchen. Ist Ihr Termin in Berlin? Sonst verbinde ich Sie gern mit unserer Beratung.`,
-      cityUnsupportedAdviser: (city) => `Das tut mir leid, wir sind bisher nur in Berlin tätig. Ich habe notiert, dass Sie nach ${city} gefragt haben. Passt Berlin für Sie, oder lassen wir es für heute?`,
+      cityUnsupported: (city) => `Das tut mir leid, in ${city} gibt es CallAssist noch nicht. Im Moment buche ich in ${listCities("de")}. Ist es eine dieser Städte? Sonst verbinde ich Sie gern mit unserer Beratung.`,
+      cityUnsupportedAdviser: (city) => `Das tut mir leid, wir sind bisher nur in ${listCities("de")}. Ich habe notiert, dass Sie nach ${city} gefragt haben. Passt eine dieser Städte, oder lassen wir es für heute?`,
       cityDeclined: "Ich verstehe. Dann kann ich das heute leider nicht buchen, aber ich habe Ihre Anfrage an unser Team weitergegeben.",
-      destUnsupported: (city) => `Das tut mir leid, Fahrten nach ${city} kann ich noch nicht buchen. Ich buche direkte Züge von Berlin nach Hamburg, Hannover, Leipzig, Dresden, Frankfurt, Köln oder München. Wohin möchten Sie?`,
-      fromBerlin: "Der Zug fährt ab Berlin. Wohin möchten Sie fahren?",
+      destUnsupported: (city) => `Das tut mir leid, Fahrten nach ${city} kann ich noch nicht buchen. Ich buche Züge nach ${listStations("de")}. Wohin möchten Sie?`,
+      originUnsupported: (city) => `Das tut mir leid, ab ${city} kann ich noch keine Züge buchen, nur ab ${listCities("de")}. Von welcher dieser Städte fahren Sie los?`,
+      sameCity: "Das wäre zweimal dieselbe Stadt. Wohin möchten Sie fahren?",
+      noTrains: "Das tut mir leid, dafür habe ich keine passende Verbindung gefunden. Passt ein anderer Tag oder eine andere Tageszeit?",
       weekend: (s) => (s.service === "doctor" ? "Hausarztpraxen haben am Wochenende geschlossen. Welcher Wochentag passt Ihnen?" : "Die Bürgerämter haben am Wochenende geschlossen. Welcher Wochentag passt Ihnen?"),
       langSwitched: "Gern, wir sprechen ab jetzt Deutsch.",
       whereLater: "Die genaue Adresse nenne ich Ihnen gleich, wenn ich die Möglichkeiten vorlese.",
-      whereOptions: (s) => (s.service === "train"
-        ? "Alle Züge fahren ab Berlin Hauptbahnhof. Das Gleis steht auf Ihrer Fahrkarte."
-        : `Der erste Termin ist ${s.service === "doctor" ? "in der Praxis" : "im"} ${PLACES[s.service][0].name.de}, ${PLACES[s.service][0].street}. Der zweite ${s.service === "doctor" ? "in der Praxis" : "im"} ${PLACES[s.service][1].name.de}, ${PLACES[s.service][1].street}.`),
+      whereOptions: (s) => {
+        if (s.service === "train") return `Ihr Zug fährt ab ${stationOf(s.origin, "de")}. Das Gleis steht auf Ihrer Fahrkarte.`;
+        const [a, b] = s.options.map(placeOf);
+        const at = s.service === "doctor" ? "in der Praxis" : "im";
+        return a === b ? `Beide Termine sind ${at} ${a.name.de}, ${a.street}.` : `Der erste Termin ist ${at} ${a.name.de}, ${a.street}. Der zweite ${at} ${b.name.de}, ${b.street}.`;
+      },
       whereChosen: (o) => (o.service === "train"
-        ? "Ihr Zug fährt ab Berlin Hauptbahnhof. Das Gleis steht auf Ihrer Fahrkarte."
-        : `Das ist ${o.service === "doctor" ? "in der Praxis" : "im"} ${PLACES[o.service][o.place].name.de}, ${PLACES[o.service][o.place].street}.`),
+        ? `Ihr Zug fährt ab ${stationOf(o.origin, "de")}. Das Gleis steht auf Ihrer Fahrkarte.`
+        : `Das ist ${o.service === "doctor" ? "in der Praxis" : "im"} ${placeOf(o).name.de}, ${placeOf(o).street}.`),
       bring: (s) => ({ address: "Bitte bringen Sie Ihren Personalausweis oder Reisepass mit und die Wohnungsgeberbestätigung von Ihrem Vermieter.", doctor: "Bringen Sie einfach Ihre Versichertenkarte mit.", train: "Bringen Sie einfach Ihre Fahrkarte und einen Lichtbildausweis mit." })[s.service],
       cost: (s) => ({ address: "Die Anmeldung ist kostenlos, und CallAssist ist für Sie auch kostenlos.", doctor: "Der Termin wird von Ihrer Krankenkasse übernommen, und CallAssist ist für Sie kostenlos.", train: "CallAssist ist für Sie kostenlos. Den Fahrpreis finden Sie auf der Rechnung, die mit der Fahrkarte kommt." })[s.service],
       questionFirst: "Bevor ich etwas buche, möchte ich sichergehen: Soll ich jetzt buchen, ja oder nein?"
@@ -507,9 +561,10 @@
   // Suggested caller replies for the presenter, per stage.
   const SUGGESTIONS = {
     en: {
-      service: ["I've moved and need to register my new address", "I need an appointment with my doctor", "I'd like a train ticket to Hamburg"],
-      city: ["Berlin", "I live in Munich"],
-      destination: ["To Hamburg, please", "To Munich"],
+      service: ["I've moved and need to register my new address", "I need an appointment with my doctor", "I'd like a train ticket from Düsseldorf to Munich"],
+      city: ["Düsseldorf", "Berlin", "I've moved to Hamburg"],
+      destination: ["To Munich, please", "To Hamburg"],
+      origin: ["From Düsseldorf", "From Berlin"],
       pref: ["Tuesday morning, please", "Any afternoon is fine"],
       review: ["Yes, that's right", "No, I'd rather go in the afternoon"],
       change: ["The afternoon would be better", "Thursday instead"],
@@ -520,9 +575,10 @@
       confused: "I don't understand"
     },
     de: {
-      service: ["Ich bin umgezogen und muss meine neue Adresse anmelden", "Ich brauche einen Termin bei meinem Hausarzt", "Ich möchte eine Fahrkarte nach Hamburg"],
-      city: ["In Berlin", "Ich wohne in München"],
-      destination: ["Nach Hamburg, bitte", "Nach München"],
+      service: ["Ich bin umgezogen und muss meine neue Adresse anmelden", "Ich brauche einen Termin bei meinem Hausarzt", "Ich möchte eine Fahrkarte von Düsseldorf nach München"],
+      city: ["Düsseldorf", "Berlin", "Ich bin nach Hamburg gezogen"],
+      destination: ["Nach München, bitte", "Nach Hamburg"],
+      origin: ["Ab Düsseldorf", "Ab Berlin"],
       pref: ["Am Dienstag vormittags, bitte", "Nachmittags, der Tag ist egal"],
       review: ["Ja, das stimmt", "Nein, lieber nachmittags"],
       change: ["Lieber nachmittags", "Lieber am Donnerstag"],
@@ -550,7 +606,7 @@
       handler: "assistant",
       stage: "ringing",
       resume: null,
-      service: null, city: null, destination: null, tod: null, day: null,
+      service: null, city: null, origin: null, destination: null, tod: null, day: null,
       options: [], selection: null, booking: null, bookings: [],
       misses: 0, lastPrompt: "", ended: false
     };
@@ -575,6 +631,7 @@
       case "service": return short(s) ? T(s, "askServiceShort") : T(s, "askService");
       case "city": return short(s) ? T(s, "askCityShort") : T(s, "askCity");
       case "destination": return short(s) ? T(s, "askDestinationShort") : T(s, "askDestination");
+      case "origin": return short(s) ? T(s, "askOriginShort") : T(s, "askOrigin");
       case "pref": return short(s) ? T(s, "askPrefShort") : T(s, "askPref");
       case "review": return short(s) ? T(s, "reviewShort") : T(s, "review");
       case "change": return short(s) ? T(s, "askChangeShort") : T(s, "askChange");
@@ -593,7 +650,9 @@
   function advance(ctx) {
     const s = ctx.s;
     if (!s.service) s.stage = "service";
-    else if (s.service === "train" ? !s.destination : !s.city) s.stage = s.service === "train" ? "destination" : "city";
+    else if (s.service === "train" && !s.destination) s.stage = "destination";
+    else if (s.service === "train" && !s.origin) s.stage = "origin";
+    else if (s.service !== "train" && !s.city) s.stage = "city";
     else if (!s.tod && !s.day) s.stage = "pref";
     else s.stage = "review";
     say(ctx, promptFor(s));
@@ -605,16 +664,31 @@
     let changed = false;
     const issues = [];
     if (s.service && s.service !== "train" && f.city) {
-      if (f.city === "berlin") {
-        if (s.city !== "berlin") { s.city = "berlin"; changed = true; }
+      if (SERVICE_CITIES.includes(f.city)) {
+        if (s.city !== f.city) { s.city = f.city; changed = true; }
       } else issues.push({ kind: "city", city: f.city });
     }
     if (s.service === "train") {
-      if (f.dest) {
-        if (CITIES[f.dest].mins) {
-          if (s.destination !== f.dest) { s.destination = f.dest; changed = true; }
-        } else issues.push({ kind: "dest", city: f.dest });
-      } else if (f.onlyBerlin && s.stage === "destination") issues.push({ kind: "fromBerlin" });
+      // "from Düsseldorf to Munich", "to Munich", or a bare city name answering the current question.
+      let origin = f.from, dest = f.to;
+      const plain = f.plainCities.slice();
+      if (!origin && !dest && plain.length >= 2) { origin = plain[0]; dest = plain[1]; }
+      else if (plain.length) {
+        const c = plain[0];
+        if (!origin && (s.stage === "origin" || (dest && !s.origin))) origin = c;
+        else if (!dest) dest = c;
+      }
+      if (origin) {
+        if (SERVICE_CITIES.includes(origin)) {
+          if (s.origin !== origin) { s.origin = origin; changed = true; }
+          if (!dest && s.destination === origin) issues.push({ kind: "sameCity" });
+        } else issues.push({ kind: "origin", city: origin });
+      }
+      if (dest) {
+        if (dest === (s.origin || origin)) issues.push({ kind: "sameCity" });
+        else if (CITIES[dest].station) { if (s.destination !== dest) { s.destination = dest; changed = true; } }
+        else issues.push({ kind: "dest", city: dest });
+      }
     }
     if (f.day) {
       if (f.day > 5 && s.service && s.service !== "train") issues.push({ kind: "weekend" });
@@ -641,9 +715,14 @@
       s.destination = null;
       s.stage = "destination";
       say(ctx, T(s, "destUnsupported", cityName(issue.city, s.lang)));
-    } else if (issue.kind === "fromBerlin") {
+    } else if (issue.kind === "origin") {
+      s.origin = null;
+      s.stage = "origin";
+      say(ctx, T(s, "originUnsupported", cityName(issue.city, s.lang)));
+    } else if (issue.kind === "sameCity") {
+      s.destination = null;
       s.stage = "destination";
-      say(ctx, T(s, "fromBerlin"));
+      say(ctx, T(s, "sameCity"));
     } else if (issue.kind === "weekend") {
       s.day = null;
       s.stage = "pref";
@@ -660,7 +739,7 @@
   }
 
   function resetErrand(s) {
-    Object.assign(s, { service: null, city: null, destination: null, tod: null, day: null, options: [], selection: null, booking: null, cityIssue: null });
+    Object.assign(s, { service: null, city: null, origin: null, destination: null, tod: null, day: null, options: [], selection: null, booking: null, cityIssue: null });
   }
 
   function pickOption(s, f) {
@@ -670,8 +749,12 @@
       const hit = s.options.find((o) => o.time === f.time);
       if (hit) return hit.index;
     }
-    if (f.place && s.service !== "train") {
-      const hit = s.options.find((o) => PLACES[s.service][o.place].key === f.place);
+    if (s.service !== "train" && placeOf(s.options[0]) !== placeOf(s.options[1])) {
+      const hit = s.options.find((o) => placeOf(o).words.some((w) => f.text.includes(w)));
+      if (hit) return hit.index;
+    }
+    if (s.service === "train") {
+      const hit = s.options.find((o) => { const n = String(o.train).replace(/\D/g, ""); return n && new RegExp(`(?<!\\d)${n}(?!\\d)`).test(f.text); });
       if (hit) return hit.index;
     }
     if (f.day && s.options[0].weekday !== s.options[1].weekday) {
@@ -717,6 +800,14 @@
       say(ctx, promptFor(s));
     } else {
       s.options = buildOptions(s);
+      if (s.options.length < 2) {
+        s.options = [];
+        s.day = null;
+        s.tod = null;
+        s.stage = "pref";
+        say(ctx, T(s, "noTrains"));
+        return;
+      }
       s.stage = "options";
       say(ctx, promptFor(s));
     }
@@ -762,7 +853,6 @@
       const result = absorb(ctx, f);
       if (raiseIssue(ctx, result)) return true;
       if (s.city) { s.cityIssue = null; advance(ctx); return true; }
-      if (s.cityIssue && f.yes && !f.no) { s.city = "berlin"; s.cityIssue = null; advance(ctx); return true; }
       if (s.cityIssue && f.no) {
         if (s.handler === "assistant") { handoff(ctx, false); return true; }
         say(ctx, T(s, "cityDeclined"));
@@ -777,6 +867,12 @@
       const s = ctx.s;
       if (raiseIssue(ctx, absorb(ctx, f))) return true;
       if (s.destination) { advance(ctx); return true; }
+      return false;
+    },
+    origin(ctx, f) {
+      const s = ctx.s;
+      if (raiseIssue(ctx, absorb(ctx, f))) return true;
+      if (s.origin) { advance(ctx); return true; }
       return false;
     },
     pref(ctx, f) {
@@ -802,6 +898,7 @@
       if (result.changed) { s.stage = "review"; say(ctx, T(s, "updated")); say(ctx, promptFor(s)); return true; }
       // The caller named what to change but not the new value: ask for it.
       if (f.fields.city && s.service !== "train") { s.city = null; advance(ctx); return true; }
+      if (f.fields.origin && s.service === "train") { s.origin = null; advance(ctx); return true; }
       if (f.fields.destination && s.service === "train") { s.destination = null; advance(ctx); return true; }
       if (f.fields.day || f.fields.time) { s.day = null; s.tod = null; advance(ctx); return true; }
       if (f.yes && !f.no) { s.stage = "review"; lookup(ctx); return true; }
@@ -971,13 +1068,15 @@
 
   function journeyIndex(s) {
     const stage = s.stage === "hold" && s.resume ? s.resume.stage : s.stage;
-    return { ringing: -1, service: 0, city: 1, destination: 1, pref: 1, review: 2, change: 2, options: 3, confirm: 4, notify: 5, more: 5, done: 6 }[stage] ?? 0;
+    return { ringing: -1, service: 0, city: 1, destination: 1, origin: 1, pref: 1, review: 2, change: 2, options: 3, confirm: 4, notify: 5, more: 5, done: 6 }[stage] ?? 0;
   }
 
   function knowledge(s) {
     const de = s.lang === "de";
     const serviceName = s.service ? { address: de ? "Neue Adresse anmelden" : "Register a new address", doctor: de ? "Hausarzttermin" : "GP appointment", train: de ? "Bahnfahrkarte" : "Train ticket" }[s.service] : null;
-    const place = s.service === "train" ? (s.destination ? `Berlin → ${cityName(s.destination, s.lang)}` : null) : s.city ? "Berlin" : null;
+    const place = s.service === "train"
+      ? (s.origin || s.destination ? `${cityName(s.origin, s.lang) || "?"} → ${cityName(s.destination, s.lang) || "?"}` : null)
+      : s.city ? cityName(s.city, s.lang) : null;
     const when = s.day || s.tod ? whenPhrase(s) : null;
     return [
       { key: "service", label: de ? "Anliegen" : "Errand", value: serviceName },
@@ -990,6 +1089,6 @@
 
   return {
     createCall, step, parse, suggestions, journeyIndex, knowledge, describeOption, shortOption, optionCard, formatDate,
-    constants: { TRANSFER_MS, LOOKUP_MS, CITIES, PLACES }
+    constants: { TRANSFER_MS, LOOKUP_MS, CITIES, PLACES, SERVICE_CITIES, TRAINS }
   };
 });
