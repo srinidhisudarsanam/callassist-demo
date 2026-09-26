@@ -124,6 +124,7 @@
   let startedAt = 0;
   let audio = null;
   let holdSound = null;
+  let holdTimer = null; // ends a hold on its own clock, so a language switch mid-hold can't cancel it
   let chipsLockedUntil = 0;
   let rushToken = -1; // set when the caller interrupts: the rest of that turn is shown, not spoken
   let repliesOpen = false;
@@ -159,6 +160,7 @@
     renderFacts();
     renderChips();
     if (call && !call.ended) setTurn($("turn").dataset.state);
+    if (!$("hold").hidden) holdText($("hold").dataset.kind);
     try { sessionStorage.setItem("callassist-lang", lang); } catch (_) { /* private mode */ }
   }
 
@@ -598,16 +600,21 @@
     }
   }
 
-  function showHold(kind) {
+  function holdText(kind) {
     const service = call.service || "address";
     $("holdTitle").textContent = kind === "transfer" ? t().holdTransferTitle : t().holdLookup[service];
     $("holdSub").textContent = kind === "transfer" ? t().holdTransferSub : t().holdLookupSub;
+  }
+  function showHold(kind) {
+    holdText(kind);
     $("hold").dataset.kind = kind;
     $("hold").hidden = false;
     $("callStatus").textContent = t().onHold;
     startHoldMusic();
   }
   function hideHold() {
+    clearTimeout(holdTimer);
+    holdTimer = null;
     $("hold").hidden = true;
     stopHoldMusic();
     if (startedAt) $("callStatus").textContent = formatDuration(Date.now() - startedAt);
@@ -643,10 +650,12 @@
       } else if (out.type === "hold") {
         showHold(out.kind);
         setTurn("idle");
-        await wait(FAST ? 250 : out.ms);
-        if (myToken !== token) return;
-        hideHold();
-        run({ type: "resume" });
+        holdTimer = setTimeout(() => {
+          holdTimer = null;
+          if (!call || call.ended || call.stage !== "hold") return;
+          hideHold();
+          run({ type: "resume" });
+        }, FAST ? 250 : out.ms);
         return;
       } else if (out.type === "end") {
         finishCall();
@@ -654,6 +663,8 @@
       }
     }
     if (myToken !== token) return;
+    // Still on hold (a language switch mid-hold): the hold timer carries on from here.
+    if (call.stage === "hold") { setTurn("idle"); return; }
     // A short pause so the recogniser doesn't catch the end of CallAssist's own voice.
     if (rushToken !== myToken && speakerOn && !FAST) await wait(300);
     if (myToken !== token) return;

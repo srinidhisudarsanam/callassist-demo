@@ -174,11 +174,15 @@
     const decimals = m[3] ? m[3].length : 0;
     const sep = m[2] ? m[2][0] : ".";
     const start = performance.now();
+    let written = text;
     const frame = (now) => {
+      // A language switch rewrote the stat mid-count: leave its new text alone.
+      if (el.textContent !== written) return;
       const k = Math.min(1, (now - start) / 1400);
       const v = (target * (1 - Math.pow(1 - k, 3))).toFixed(decimals).replace(".", sep);
-      el.textContent = text.slice(0, m.index) + v + text.slice(m.index + m[0].length);
-      if (k < 1) requestAnimationFrame(frame); else el.textContent = text;
+      written = k < 1 ? text.slice(0, m.index) + v + text.slice(m.index + m[0].length) : text;
+      el.textContent = written;
+      if (k < 1) requestAnimationFrame(frame);
     };
     requestAnimationFrame(frame);
   }

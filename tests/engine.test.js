@@ -454,3 +454,45 @@ test("trains from an unsupported city and to the same city are refused honestly"
   assert.equal(c.state.stage, "destination");
   assert.match(c.lastSaid(), /same city/);
 });
+
+test("a self-correction after 'no' picks the option named; 'not the first' still means the second", () => {
+  const c = call();
+  toOptions(c);
+  c.say("No, actually the first one");
+  assert.equal(c.state.selection.index, 0);
+  const d = call();
+  toOptions(d);
+  d.say("Not the first one");
+  assert.equal(d.state.selection.index, 1);
+});
+
+test("an afternoon option can be picked by its 12-hour time", () => {
+  const c = call();
+  c.say("I've moved and need to register my new address");
+  c.say("Berlin");
+  c.say("Tuesday afternoon, please");
+  c.say("Yes, that's right");
+  const [h, m] = c.state.options[1].time.split(":").map(Number);
+  c.say(`The one at ${h - 12}:${String(m).padStart(2, "0")}`);
+  assert.equal(c.state.selection.index, 1);
+});
+
+test("asking where the train leaves before the origin is known gives a whole sentence", () => {
+  const c = call();
+  c.say("I'd like a train ticket");
+  assert.equal(c.state.stage, "destination");
+  c.say("Where do I catch the train from?");
+  const said = c.log.filter((o) => o.type === "say").map((o) => o.text).join(" ");
+  assert.doesNotMatch(said, /leaves from \./);
+  assert.match(said, /main station of the city you travel from/);
+});
+
+test("Düsseldorf to Hamburg on Saturday offers two different trains", () => {
+  const c = call();
+  c.say("A train from Düsseldorf to Hamburg");
+  c.say("Saturday morning");
+  c.say("Yes, that's right");
+  assert.equal(c.state.stage, "options");
+  const [a, b] = c.state.options;
+  assert.notEqual(a.train, b.train);
+});
