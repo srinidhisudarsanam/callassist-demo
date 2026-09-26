@@ -268,7 +268,11 @@
   }
   function shortOption(o, lang) {
     const date = formatDate(o.date, lang);
-    if (o.service === "train") return `${date}, ${formatTime(o.time, lang)} → ${cityName(o.destination, lang)}`;
+    if (o.service === "train") {
+      return lang === "de"
+        ? `${date}, der Zug um ${formatTime(o.time, lang)} nach ${cityName(o.destination, lang)}`
+        : `${date}, the ${formatTime(o.time, lang)} train to ${cityName(o.destination, lang)}`;
+    }
     return `${date}, ${formatTime(o.time, lang)}, ${PLACES[o.service][o.place].name[lang]}`;
   }
   // Structured version for the appointment card and letter.
@@ -340,21 +344,21 @@
     en: {
       greeting: (s) => `${hello(s)}, this is CallAssist. I'm an automated assistant, and you can speak to a real person at any time. Just so you know: I will never ask for your PIN or any password. Today I can help you with three things: registering a new address at the Citizens' Office, booking an appointment with a GP, or booking a train ticket. What would you like to do?`,
       askService: "I can help you register a new address, book a GP appointment, or book a train ticket. Which would you like?",
-      askServiceShort: "Shall we do a new address, a doctor's appointment, or a train ticket?",
+      askServiceShort: "So, what can I do for you? A new address, a doctor's appointment, or a train ticket?",
       askServiceMore: "Of course. I can help with a new address, a GP appointment, or a train ticket. What would you like?",
       ack_address: "Of course. I'll help you register your new address.",
       ack_doctor: "Of course. I'll book you an appointment at a GP practice. If it's an emergency, please hang up and call 112.",
       ack_train: "Of course. I'll book a train ticket for you.",
       askCity: (s) => (s.service === "doctor" ? "Which city should the practice be in?" : "Which city do you live in now?"),
-      askCityShort: "Which city?",
+      askCityShort: "And which city are you in?",
       askDestination: "Where would you like to travel to? The train would leave from Berlin Central Station.",
-      askDestinationShort: "Where to?",
+      askDestinationShort: "And where are you off to?",
       askPref: (s) => (s.service === "train" ? "Which day next week would you like to travel, and would you rather leave in the morning or the afternoon?" : "Which day next week would suit you, and do you prefer the morning or the afternoon?"),
-      askPrefShort: "Which day, and morning or afternoon?",
+      askPrefShort: "Which day would suit you? And is morning or afternoon better?",
       review: (s) => `Let me check I have this right. You'd like ${whatPhrase(s)}, ${whenPhrase(s)}. Is that correct?`,
-      reviewShort: (s) => `So: ${whatPhrase(s)}, ${whenPhrase(s)}. Is that right?`,
+      reviewShort: (s) => `Just so I've got it right: ${whatPhrase(s)}, ${whenPhrase(s)}. Is that right?`,
       askChange: (s) => `Of course. What should I change: the day, the time of day, or ${s.service === "train" ? "where you're going" : "the city"}?`,
-      askChangeShort: "What should I change?",
+      askChangeShort: "No problem. What would you like to change?",
       updated: "Thank you, I've changed that.",
       checking: (s) => ({
         address: "Thank you. I'm checking free appointments at the Berlin Citizens' Offices now. One moment, please.",
@@ -362,11 +366,13 @@
         train: `Thank you. I'm checking trains from Berlin to ${cityName(s.destination, "en")} now. One moment, please.`
       })[s.service],
       lookAgain: "No problem, I'll look again.",
+      checkingShort: (s) => (s.service === "train" ? "Let me just look up the trains for you. Bear with me a second." : "Let me just see what's free. Bear with me a second."),
+      bookedShort: (s) => `That's all booked for you: ${describeOption(s.booking, "en")}. Your reference number is ${spellReference(s.booking.ref)}.`,
       options: (s) => `I've found two options. The first: ${describeOption(s.options[0], "en")}. The second: ${describeOption(s.options[1], "en")}. Which would you like?`,
-      optionsShort: (s) => `Two options. First: ${shortOption(s.options[0], "en")}. Second: ${shortOption(s.options[1], "en")}. Which one?`,
+      optionsShort: (s) => `I've got two for you. The first is ${shortOption(s.options[0], "en")}. Or there's ${shortOption(s.options[1], "en")}. Which one sounds better?`,
       noneSuit: "No problem. What should I change so it suits you better: the day or the time of day?",
       confirm: (s) => `Before I book anything: ${describeOption(s.selection, "en")}. Shall I book this ${s.service === "train" ? "ticket" : "appointment"} for you? Please say yes or no.`,
-      confirmShort: (s) => `${shortOption(s.selection, "en")}. Shall I book it? Yes or no?`,
+      confirmShort: (s) => `So that's ${shortOption(s.selection, "en")}. Shall I go ahead and book that for you?`,
       needClearYes: "For your protection, I only book when you give me a clear yes. Shall I book it, yes or no?",
       nothingBooked: "No problem, nothing has been booked.",
       booked: (s) => `Done. Your ${s.service === "train" ? "ticket" : "appointment"} is booked: ${describeOption(s.booking, "en")}. Your reference number is ${spellReference(s.booking.ref)}.`,
@@ -381,9 +387,9 @@
       closingEarly: "Alright. Nothing has been booked. Thank you for calling CallAssist. Goodbye!",
       transfer: "Of course. I'm connecting you to Marina from our team. She can see everything you've told me, so you won't need to repeat anything. Please hold.",
       transferConfused: "That's completely fine. I'm connecting you to Marina from our team; she's a real person. She can see everything you've told me, so you won't need to repeat anything. Please hold.",
-      adviserHello: (s) => (s.service ? `Hello, this is Marina from the CallAssist team. I can see ${adviserContext(s)}. Let's finish this together, one step at a time.` : "Hello, this is Marina from the CallAssist team. How can I help you today?"),
-      alreadyAdviser: "You're already speaking with me, Marina, a real person. Take all the time you need.",
-      slowDown: "No problem at all. Let's take it slowly.",
+      adviserHello: (s) => (s.service ? `Hi, this is Marina from CallAssist. Don't worry, I've got everything you told us so far. So, ${adviserContext(s)}. We'll sort this out together.` : "Hi, this is Marina from CallAssist. How can I help you today?"),
+      alreadyAdviser: "It's me, Marina. You're talking to a real person now, so take all the time you need.",
+      slowDown: "That's absolutely fine, there's no rush at all.",
       didntCatch: "Sorry, I didn't quite catch that.",
       credential: "Please don't tell me any PIN, password or bank details. CallAssist will never ask for them, and I haven't kept what you just said. I only need details about your errand.",
       redacted: "[Removed: sensitive information]",
@@ -401,21 +407,21 @@
     de: {
       greeting: (s) => `${hello(s)}, hier ist CallAssist. Ich bin ein automatischer Assistent, und Sie können jederzeit mit einem Menschen sprechen. Vorab: Ich frage Sie niemals nach Ihrer PIN oder einem Passwort. Ich kann Ihnen heute bei drei Dingen helfen: eine neue Adresse beim Bürgeramt anmelden, einen Termin in einer Hausarztpraxis vereinbaren oder eine Bahnfahrkarte buchen. Was möchten Sie tun?`,
       askService: "Ich kann eine neue Adresse anmelden, einen Hausarzttermin vereinbaren oder eine Bahnfahrkarte buchen. Was möchten Sie?",
-      askServiceShort: "Worum geht es: neue Adresse, Arzttermin oder Bahnfahrkarte?",
+      askServiceShort: "Was kann ich für Sie tun? Eine neue Adresse, ein Arzttermin oder eine Bahnfahrkarte?",
       askServiceMore: "Gern. Ich kann eine neue Adresse anmelden, einen Hausarzttermin vereinbaren oder eine Bahnfahrkarte buchen. Was darf es sein?",
       ack_address: "Gern, ich helfe Ihnen bei der Anmeldung Ihrer neuen Adresse.",
       ack_doctor: "Gern, ich vereinbare einen Termin in einer Hausarztpraxis für Sie. Im Notfall legen Sie bitte auf und rufen die 112 an.",
       ack_train: "Gern, ich buche eine Bahnfahrkarte für Sie.",
       askCity: (s) => (s.service === "doctor" ? "In welcher Stadt soll die Praxis sein?" : "In welcher Stadt wohnen Sie jetzt?"),
-      askCityShort: "Welche Stadt?",
+      askCityShort: "Und in welcher Stadt sind Sie?",
       askDestination: "Wohin möchten Sie fahren? Der Zug fährt ab Berlin Hauptbahnhof.",
-      askDestinationShort: "Wohin soll es gehen?",
+      askDestinationShort: "Und wohin soll's gehen?",
       askPref: (s) => (s.service === "train" ? "An welchem Tag nächste Woche möchten Sie fahren, und lieber vormittags oder nachmittags?" : "Welcher Tag in der nächsten Woche passt Ihnen, und ist Ihnen der Vormittag oder der Nachmittag lieber?"),
-      askPrefShort: "Welcher Tag, und lieber vormittags oder nachmittags?",
+      askPrefShort: "Welcher Tag passt Ihnen denn? Und lieber vormittags oder nachmittags?",
       review: (s) => `Ich fasse kurz zusammen: Sie möchten ${whatPhrase(s)}, ${whenPhrase(s)}. Stimmt das?`,
-      reviewShort: (s) => `Also: ${whatPhrase(s)}, ${whenPhrase(s)}. Richtig?`,
+      reviewShort: (s) => `Nur damit ich alles richtig habe: ${whatPhrase(s)}, ${whenPhrase(s)}. Stimmt das so?`,
       askChange: (s) => `Natürlich. Was soll ich ändern: den Tag, die Tageszeit oder ${s.service === "train" ? "das Reiseziel" : "die Stadt"}?`,
-      askChangeShort: "Was soll ich ändern?",
+      askChangeShort: "Kein Problem. Was möchten Sie ändern?",
       updated: "Danke, das habe ich geändert.",
       checking: (s) => ({
         address: "Danke. Ich prüfe jetzt freie Termine bei den Berliner Bürgerämtern. Einen Moment bitte.",
@@ -423,11 +429,13 @@
         train: `Danke. Ich suche jetzt Verbindungen von Berlin nach ${cityName(s.destination, "de")}. Einen Moment bitte.`
       })[s.service],
       lookAgain: "Kein Problem, ich schaue noch einmal nach.",
+      checkingShort: (s) => (s.service === "train" ? "Ich schaue mal kurz nach den Zügen. Einen kleinen Moment." : "Ich schaue mal kurz, was frei ist. Einen kleinen Moment."),
+      bookedShort: (s) => `So, das ist gebucht: ${describeOption(s.booking, "de")}. Ihre Referenznummer ist ${spellReference(s.booking.ref)}.`,
       options: (s) => `Ich habe zwei Möglichkeiten gefunden. Erstens: ${describeOption(s.options[0], "de")}. Zweitens: ${describeOption(s.options[1], "de")}. Welche möchten Sie?`,
-      optionsShort: (s) => `Zwei Möglichkeiten. Erstens: ${shortOption(s.options[0], "de")}. Zweitens: ${shortOption(s.options[1], "de")}. Welche?`,
+      optionsShort: (s) => `Ich hätte zwei Möglichkeiten für Sie. Einmal ${shortOption(s.options[0], "de")}. Oder ${shortOption(s.options[1], "de")}. Was passt Ihnen besser?`,
       noneSuit: "Kein Problem. Was soll ich ändern, damit es besser passt: den Tag oder die Tageszeit?",
       confirm: (s) => `Bevor ich etwas buche: ${describeOption(s.selection, "de")}. Soll ich ${s.service === "train" ? "diese Fahrkarte" : "diesen Termin"} für Sie buchen? Bitte sagen Sie ja oder nein.`,
-      confirmShort: (s) => `${shortOption(s.selection, "de")}. Soll ich buchen? Ja oder nein?`,
+      confirmShort: (s) => `Das wäre dann ${shortOption(s.selection, "de")}. Soll ich das für Sie buchen?`,
       needClearYes: "Zu Ihrer Sicherheit buche ich nur nach einem klaren Ja. Soll ich buchen, ja oder nein?",
       nothingBooked: "Kein Problem, es wurde nichts gebucht.",
       booked: (s) => `Erledigt. ${s.service === "train" ? "Ihre Fahrkarte" : "Ihr Termin"} ist gebucht: ${describeOption(s.booking, "de")}. Ihre Referenznummer lautet ${spellReference(s.booking.ref)}.`,
@@ -442,9 +450,9 @@
       closingEarly: "In Ordnung. Es wurde nichts gebucht. Vielen Dank für Ihren Anruf bei CallAssist. Auf Wiederhören!",
       transfer: "Natürlich. Ich verbinde Sie mit Marina aus unserem Team. Sie sieht alles, was Sie mir gesagt haben, Sie müssen also nichts wiederholen. Bitte bleiben Sie dran.",
       transferConfused: "Das ist überhaupt kein Problem. Ich verbinde Sie mit Marina aus unserem Team, einem echten Menschen. Sie sieht alles, was Sie mir gesagt haben, Sie müssen also nichts wiederholen. Bitte bleiben Sie dran.",
-      adviserHello: (s) => (s.service ? `Hallo, hier ist Marina vom CallAssist-Team. Ich sehe, ${adviserContext(s)}. Wir machen das jetzt gemeinsam, Schritt für Schritt.` : "Hallo, hier ist Marina vom CallAssist-Team. Wie kann ich Ihnen helfen?"),
-      alreadyAdviser: "Sie sprechen bereits mit mir, Marina, einem echten Menschen. Lassen Sie sich ruhig Zeit.",
-      slowDown: "Überhaupt kein Problem. Wir machen das ganz in Ruhe.",
+      adviserHello: (s) => (s.service ? `Hallo, hier ist Marina von CallAssist. Keine Sorge, ich habe alles, was Sie bisher gesagt haben. Also, ${adviserContext(s)}. Das kriegen wir zusammen hin.` : "Hallo, hier ist Marina von CallAssist. Was kann ich für Sie tun?"),
+      alreadyAdviser: "Ich bin's, Marina. Sie sprechen jetzt mit einem echten Menschen, lassen Sie sich also ruhig Zeit.",
+      slowDown: "Das ist überhaupt kein Problem, wir haben keine Eile.",
       didntCatch: "Entschuldigung, das habe ich nicht ganz verstanden.",
       credential: "Bitte nennen Sie mir keine PIN, kein Passwort und keine Bankdaten. CallAssist fragt niemals danach, und ich habe das eben Gesagte nicht gespeichert. Ich brauche nur Angaben zu Ihrem Anliegen.",
       redacted: "[Entfernt: vertrauliche Angaben]",
@@ -519,6 +527,17 @@
   }
 
   const speaker = (s) => (s.handler === "adviser" ? "adviser" : "assistant");
+
+  // Marina acknowledges what she heard before moving on, the way a person on the phone does.
+  const ACKS = { en: ["Okay.", "Alright.", "Got it.", "Perfect.", "Lovely."], de: ["Okay.", "Gut.", "Alles klar.", "Prima.", "Wunderbar."] };
+  function acknowledge(ctx, fromIndex) {
+    const s = ctx.s;
+    if (s.handler !== "adviser") return;
+    const first = ctx.out.slice(fromIndex).find((o) => o.type === "say");
+    if (!first || ACKS[s.lang].some((a) => first.text.startsWith(a.slice(0, -1)))) return;
+    first.text = `${ACKS[s.lang][(s.acks || 0) % ACKS[s.lang].length]} ${first.text}`;
+    s.acks = (s.acks || 0) + 1;
+  }
   const short = (s) => s.handler === "adviser";
 
   function promptFor(s) {
@@ -634,7 +653,7 @@
 
   function lookup(ctx) {
     const s = ctx.s;
-    say(ctx, T(s, "checking"));
+    say(ctx, T(s, short(s) ? "checkingShort" : "checking"));
     s.resume = { kind: "lookup", stage: "options" };
     s.stage = "hold";
     ctx.out.push({ type: "hold", kind: "lookup", ms: LOOKUP_MS });
@@ -680,7 +699,7 @@
     s.bookings.push(booking);
     s.stage = "notify";
     ctx.out.push({ type: "booked", booking });
-    say(ctx, T(s, "booked"));
+    say(ctx, T(s, short(s) ? "bookedShort" : "booked"));
     say(ctx, T(s, "askPostal"));
   }
 
@@ -850,8 +869,9 @@
     }
     if (f.bye && !["notify", "more"].includes(s.stage)) { close(ctx, true); return; }
 
+    const before = ctx.out.length;
     const handled = STAGES[s.stage] ? STAGES[s.stage](ctx, f) : false;
-    if (handled) s.misses = 0;
+    if (handled) { s.misses = 0; acknowledge(ctx, before); }
     else missed(ctx);
   }
 

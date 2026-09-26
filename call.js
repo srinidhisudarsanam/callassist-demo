@@ -230,11 +230,11 @@
   const VOICE_PREFS = {
     en: {
       assistant: ["Daniel", "Arthur", "Oliver", "Jamie", "Microsoft Ryan", "Microsoft Thomas", "Microsoft Guy", "Microsoft George", "Microsoft David", "Microsoft Mark", "Google UK English Male", "Alex", "Aaron", "Tom", "Evan", "Reed"],
-      adviser: ["Serena", "Kate", "Samantha", "Moira", "Karen", "Tessa", "Martha", "Microsoft Sonia", "Microsoft Libby", "Microsoft Hazel", "Microsoft Aria", "Microsoft Jenny", "Microsoft Zira", "Google UK English Female", "Ava", "Allison", "Susan"]
+      adviser: ["Microsoft Sonia", "Microsoft Libby", "Microsoft Maisie", "Microsoft Ava", "Microsoft Emma", "Microsoft Jenny", "Microsoft Aria", "Ava", "Zoe", "Serena", "Kate", "Stephanie", "Allison", "Susan", "Samantha", "Moira", "Karen", "Tessa", "Martha", "Microsoft Hazel", "Google UK English Female", "Microsoft Zira"]
     },
     de: {
       assistant: ["Markus", "Yannick", "Martin", "Viktor", "Microsoft Conrad", "Microsoft Killian", "Microsoft Florian", "Microsoft Stefan", "Reed", "Eddy", "Rocko"],
-      adviser: ["Anna", "Petra", "Helena", "Katja", "Microsoft Katja", "Microsoft Amala", "Microsoft Seraphina", "Microsoft Hedda", "Google Deutsch", "Sandy", "Shelley", "Flo"]
+      adviser: ["Microsoft Seraphina", "Microsoft Katja", "Microsoft Amala", "Anna", "Petra", "Helena", "Katja", "Microsoft Hedda", "Google Deutsch", "Sandy", "Shelley", "Flo"]
     }
   };
   const NOVELTY = /^(albert|bad news|bahh|bells|boing|bubbles|cellos|wobble|fred|good news|jester|junior|organ|superstar|ralph|trinoids|whisper|zarvox|grandma|grandpa)\b/i;
@@ -242,10 +242,14 @@
 
   function findVoice(code, who, avoid) {
     const pool = voices.filter((v) => v.lang.toLowerCase().replace("_", "-").startsWith(code) && !NOVELTY.test(v.name) && v !== avoid);
-    const quality = (v) => (/(premium|enhanced|natural|neural)/i.test(v.name) ? 0 : 1);
-    for (const name of VOICE_PREFS[code][who]) {
-      const hits = pool.filter((v) => v.name.toLowerCase().startsWith(name.toLowerCase())).sort((a, b) => quality(a) - quality(b));
-      if (hits.length) return hits[0];
+    // Neural "Natural"/"Online" (Edge) and "Premium"/"Enhanced" (Apple) voices sound human; prefer any of them first.
+    const quality = (v) => (/(premium|enhanced|natural|neural|online)/i.test(v.name) ? 0 : 1);
+    const named = (v, name) => v.name.toLowerCase().startsWith(name.toLowerCase());
+    for (const pass of [0, 1]) {
+      for (const name of VOICE_PREFS[code][who]) {
+        const hit = pool.find((v) => named(v, name) && quality(v) <= pass);
+        if (hit) return hit;
+      }
     }
     const regional = pool.filter((v) => /gb|de-de/i.test(v.lang)).sort((a, b) => quality(a) - quality(b));
     return regional[0] || pool[0] || null;
@@ -278,9 +282,10 @@
       u.lang = (call ? call.lang : lang) === "de" ? "de-DE" : "en-GB";
       const v = pickVoice(who);
       if (v) u.voice = v;
-      u.rate = (slow ? 0.78 : 0.98) * (who === "adviser" ? 0.95 : 1);
-      // Pitch keeps the two apart even on a device with a single voice for the language.
-      u.pitch = who === "adviser" ? 1.12 : 0.9;
+      // Marina keeps her voice's natural pitch and pace; bending it is what makes a voice sound synthetic.
+      // The assistant is set slightly lower, which keeps the two apart even on a device with one voice.
+      u.rate = slow ? 0.8 : who === "adviser" ? 1.02 : 0.97;
+      u.pitch = who === "adviser" ? 1 : 0.92;
       let finished = false;
       const finish = () => {
         if (finished) return;
@@ -310,8 +315,10 @@
       return;
     }
     phone.classList.add("is-speaking");
-    for (const part of sentences(text)) {
+    for (const [i, part] of sentences(text).entries()) {
       if (myToken !== token || rushToken === myToken) break;
+      // People breathe between sentences, and never for exactly the same time.
+      if (i > 0 && who === "adviser") await wait(220 + Math.random() * 260);
       showCaption(who, part);
       await utter(part, who);
     }

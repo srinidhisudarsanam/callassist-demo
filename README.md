@@ -24,7 +24,7 @@ Test on the presentation laptop beforehand. Voices come from the operating syste
 - English: the assistant is Daniel (British, male) and Marina is Samantha (female).
 - German: the assistant is Reed (male, a little synthetic) and Marina is Anna (female).
 
-For a more natural German assistant, download **Markus** or **Yannick** under System Settings › Accessibility › Spoken Content › System voice › Manage voices. The prototype picks them up automatically. It always gives the assistant and Marina different voices.
+Marina should sound like a person, so the prototype always prefers the high-quality voices when a device has them: the "Natural" voices in Microsoft Edge on Windows, and the "Premium" or "Enhanced" voices on a Mac. On a Mac, download them under System Settings › Accessibility › Spoken Content › System voice › Manage voices: **Ava (Premium)** or **Zoe (Premium)** for English, **Anna (Premium)** for German, and **Markus** or **Yannick** for a more natural German assistant. The prototype picks them up automatically, and it always gives the assistant and Marina different voices.
 
 ## What the call can do
 
