@@ -106,6 +106,7 @@
     doctor: words(["doctor", "doctors", "doctor's", "gp", "physician", "check-up", "checkup", "check up", "prescription", "medical", "sick", "unwell", "arzt", "ärztin", "hausarzt*", "hausärzt*", "arzttermin", "praxis", "rezept", "krank", "untersuchung", "doktor"]),
     train: words(["train", "trains", "rail", "railway", "ticket", "tickets", "journey", "travel*", "trip", "ice", "deutsche bahn", "zug", "züge", "zugfahrt", "zugfahrkarte", "bahn", "bahnfahrt", "bahnfahrkarte", "fahrkarte*", "reise", "reisen", "fahren", "fahrt", "verreisen"]),
     yes: words(["yes", "yeah", "yep", "yup", "correct", "right", "that's right", "thats right", "sure", "alright", "all right", "ok", "okay", "fine", "perfect", "great", "good", "go ahead", "please do", "book it", "do it", "confirm", "confirmed", "sounds good", "absolutely", "of course", "exactly", "ja", "jawohl", "jo", "genau", "richtig", "stimmt", "gerne", "gern", "passt", "einverstanden", "buchen", "bestätigen", "klar", "natürlich", "prima", "gut", "in ordnung"]),
+    negation: words(["not", "don't", "dont", "do not", "nicht", "kein", "keine", "keinen"]),
     no: words(["no", "nope", "nah", "not", "don't", "dont", "do not", "never", "wrong", "incorrect", "cancel", "stop", "wait", "hold on", "isn't", "isnt", "wasn't", "nein", "nee", "nö", "nicht", "kein", "keine", "keinen", "falsch", "stopp", "halt", "warten", "warte", "abbrechen"]),
     unsure: /not sure|nicht sicher|weiß (ich )?nicht so recht|maybe|vielleicht|perhaps/u,
     change: words(["change", "different", "another", "other", "instead", "rather", "actually", "switch", "ändern", "änderung", "anders", "andere*", "lieber", "stattdessen"]),
@@ -135,8 +136,7 @@
     fieldTime: words(["time", "time of day", "uhrzeit", "tageszeit", "zeit"]),
     fieldCity: words(["city", "town", "stadt", "ort"]),
     fieldDestination: words(["destination", "where", "ziel", "reiseziel", "wohin"]),
-    fieldOrigin: words(["from", "leaving", "departure", "starting", "abfahrt", "abfahrtsort", "start", "von wo"]),
-    noop: /$^/
+    fieldOrigin: words(["from", "leaving", "departure", "starting", "abfahrt", "abfahrtsort", "start", "von wo"])
   };
   const DAY_LEX = [
     words(["monday*", "montag*"]), words(["tuesday*", "dienstag*"]), words(["wednesday*", "mittwoch*"]),
@@ -190,6 +190,12 @@
     const first = LEX.first.test(t) || /(?<![\d:.])1(?![\d:.])/.test(t);
     const second = LEX.second.test(t) || /(?<![\d:.])2(?![\d:.])/.test(t);
     f.option = first && !second ? 0 : second && !first ? 1 : null;
+    // "Not the first one" rejects that option; "No, actually the first one" still picks it.
+    if (f.option !== null) {
+      const at = f.option === 0 ? find(LEX.first, t) : find(LEX.second, t);
+      const lead = at >= 0 ? t.slice(0, at).trim().split(" ").slice(-3).join(" ") : "";
+      f.optionNegated = LEX.negation.test(lead);
+    }
     const time = /(?<!\d)(\d{1,2})[:.](\d{2})(?!\d)/.exec(t);
     f.time = time ? `${time[1].padStart(2, "0")}:${time[2]}` : null;
 
@@ -232,11 +238,6 @@
     return date;
   }
   const iso = (date) => date.toISOString().slice(0, 10);
-  function addMinutes(time, minutes) {
-    const [h, m] = time.split(":").map(Number);
-    const total = h * 60 + m + minutes;
-    return `${String(Math.floor(total / 60) % 24).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
-  }
 
   const dayType = (d) => (d <= 5 ? "weekday" : d === 6 ? "saturday" : "sunday");
   function dateOfWeekday(s, day) {
@@ -460,7 +461,7 @@
       langSwitched: "Of course, let's continue in English.",
       whereLater: "I'll give you the exact address when I read out the options in a moment.",
       whereOptions: (s) => {
-        if (s.service === "train") return `Your train leaves from ${stationOf(s.origin, "en")}. The platform is printed on your ticket.`;
+        if (s.service === "train") return s.origin ? `Your train leaves from ${stationOf(s.origin, "en")}. The platform is printed on your ticket.` : "Your train leaves from the main station of the city you travel from. The platform is printed on your ticket.";
         const [a, b] = s.options.map(placeOf);
         return a === b ? `Both are at ${a.name.en}, ${a.street}.` : `The first is at ${a.name.en}, ${a.street}. The second is at ${b.name.en}, ${b.street}.`;
       },
@@ -539,7 +540,7 @@
       langSwitched: "Gern, wir sprechen ab jetzt Deutsch.",
       whereLater: "Die genaue Adresse nenne ich Ihnen gleich, wenn ich die Möglichkeiten vorlese.",
       whereOptions: (s) => {
-        if (s.service === "train") return `Ihr Zug fährt ab ${stationOf(s.origin, "de")}. Das Gleis steht auf Ihrer Fahrkarte.`;
+        if (s.service === "train") return s.origin ? `Ihr Zug fährt ab ${stationOf(s.origin, "de")}. Das Gleis steht auf Ihrer Fahrkarte.` : "Ihr Zug fährt am Hauptbahnhof der Stadt ab, in der Ihre Reise beginnt. Das Gleis steht auf Ihrer Fahrkarte.";
         const [a, b] = s.options.map(placeOf);
         const at = s.service === "doctor" ? "in der Praxis" : "im";
         return a === b ? `Beide Termine sind ${at} ${a.name.de}, ${a.street}.` : `Der erste Termin ist ${at} ${a.name.de}, ${a.street}. Der zweite ${at} ${b.name.de}, ${b.street}.`;
@@ -744,9 +745,12 @@
 
   function pickOption(s, f) {
     if (s.options.length !== 2) return null;
-    if (f.option !== null) return f.no && !f.yes ? 1 - f.option : f.option;
+    if (f.option !== null) return f.optionNegated ? 1 - f.option : f.option;
     if (f.time) {
-      const hit = s.options.find((o) => o.time === f.time);
+      // Callers say "two thirty" for 14:30, so an hour under 12 also matches its afternoon twin.
+      const [h, m] = f.time.split(":").map(Number);
+      const pm = h < 12 ? `${h + 12}:${String(m).padStart(2, "0")}` : null;
+      const hit = s.options.find((o) => o.time === f.time) || s.options.find((o) => o.time === pm);
       if (hit) return hit.index;
     }
     if (s.service !== "train" && placeOf(s.options[0]) !== placeOf(s.options[1])) {
