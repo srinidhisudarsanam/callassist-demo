@@ -226,15 +226,16 @@
     if ("speechSynthesis" in window) voices = window.speechSynthesis.getVoices();
   }
   // The assistant always speaks with a male voice and Marina with a female one, so the handover is audible.
-  // Names cover macOS/iOS, Chrome's Google voices and Windows; "(Premium)"/"(Enhanced)" versions win when installed.
+  // Names cover macOS/iOS, Edge's neural voices, Chrome's Google voices and Windows; "(Premium)"/"(Enhanced)" versions win
+  // when installed. Google's voices rank above the older Windows desktop voices (Hazel, Zira, Hedda), which sound robotic.
   const VOICE_PREFS = {
     en: {
-      assistant: ["Daniel", "Arthur", "Oliver", "Jamie", "Microsoft Ryan", "Microsoft Thomas", "Microsoft Guy", "Microsoft George", "Microsoft David", "Microsoft Mark", "Google UK English Male", "Alex", "Aaron", "Tom", "Evan", "Reed"],
-      adviser: ["Microsoft Sonia", "Microsoft Libby", "Microsoft Maisie", "Microsoft Ava", "Microsoft Emma", "Microsoft Jenny", "Microsoft Aria", "Ava", "Zoe", "Serena", "Kate", "Stephanie", "Allison", "Susan", "Samantha", "Moira", "Karen", "Tessa", "Martha", "Microsoft Hazel", "Google UK English Female", "Microsoft Zira"]
+      assistant: ["Daniel", "Arthur", "Oliver", "Jamie", "Microsoft Ryan", "Microsoft Thomas", "Microsoft Guy", "Google UK English Male", "Microsoft George", "Microsoft David", "Microsoft Mark", "Alex", "Aaron", "Tom", "Evan", "Reed"],
+      adviser: ["Microsoft Sonia", "Microsoft Libby", "Microsoft Maisie", "Microsoft Ava", "Microsoft Emma", "Microsoft Jenny", "Microsoft Aria", "Ava", "Zoe", "Serena", "Kate", "Stephanie", "Allison", "Susan", "Samantha", "Moira", "Karen", "Tessa", "Martha", "Google UK English Female", "Google US English", "Microsoft Hazel", "Microsoft Zira"]
     },
     de: {
       assistant: ["Markus", "Yannick", "Martin", "Viktor", "Microsoft Conrad", "Microsoft Killian", "Microsoft Florian", "Microsoft Stefan", "Reed", "Eddy", "Rocko"],
-      adviser: ["Microsoft Seraphina", "Microsoft Katja", "Microsoft Amala", "Anna", "Petra", "Helena", "Katja", "Microsoft Hedda", "Google Deutsch", "Sandy", "Shelley", "Flo"]
+      adviser: ["Microsoft Seraphina", "Microsoft Katja Online", "Microsoft Amala", "Anna", "Petra", "Helena", "Google Deutsch", "Microsoft Katja", "Microsoft Hedda", "Sandy", "Shelley", "Flo"]
     }
   };
   const NOVELTY = /^(albert|bad news|bahh|bells|boing|bubbles|cellos|wobble|fred|good news|jester|junior|organ|superstar|ralph|trinoids|whisper|zarvox|grandma|grandpa)\b/i;
