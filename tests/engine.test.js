@@ -374,3 +374,15 @@ test('"Can you also register my address?" after a booking starts that errand', (
   c.say("Can you also register my new address?");
   assert.equal(c.state.service, "address");
 });
+
+test("GP options use the real practice addresses", () => {
+  const c = call();
+  toOptions(c, "I need an appointment with my doctor");
+  assert.match(c.lastSaid(), /Hausvogteiplatz 3/);
+  assert.match(c.lastSaid(), /Bozener Straße 13/);
+  c.say("Where is the second one?");
+  c.say("The one at Medicover");
+  assert.equal(c.state.selection.place, 0);
+  c.say("Where is it?");
+  assert.ok(c.log.some((o) => o.type === "say" && /Hausvogteiplatz 3–4, 10117 Berlin/.test(o.text)));
+});

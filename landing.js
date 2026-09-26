@@ -31,7 +31,7 @@
     s3t: "Erledigt", s3b: "Nach Ihrem klaren Ja bucht CallAssist, liest Ihnen die Details vor und schickt auf Wunsch eine Bestätigung per Post.",
     servicesTitle: "Eine Nummer. Drei Anliegen für den Anfang.",
     sv1t: "Neue Adresse anmelden", sv1b: "Ein Termin in einem Berliner Bürgeramt, zum Beispiel im Rathaus Mitte an der Karl-Marx-Allee, mit einem Hinweis, was Sie mitbringen müssen.", sv1q: "„Ich bin umgezogen und muss mich anmelden.“",
-    sv2t: "Zum Hausarzt", sv2b: "Ein Termin am Vormittag oder Nachmittag in einer Praxis in Ihrer Nähe. Im Notfall sagt CallAssist Ihnen, dass Sie die 112 anrufen sollen.", sv2q: "„Ich brauche einen Termin bei meinem Hausarzt.“",
+    sv2t: "Zum Hausarzt", sv2b: "Ein Termin am Vormittag oder Nachmittag in einer Hausarztpraxis, zum Beispiel im MVZ Medicover am Hausvogteiplatz in Mitte. Im Notfall sagt CallAssist Ihnen, dass Sie die 112 anrufen sollen.", sv2q: "„Ich brauche einen Termin bei meinem Hausarzt.“",
     sv3t: "Mit dem Zug fahren", sv3b: "Direkte ICE-Verbindungen ab Berlin Hauptbahnhof nach Hamburg, Hannover, Leipzig, Dresden, Frankfurt, Köln oder München, die Fahrkarte kommt per Post.", sv3q: "„Eine Fahrkarte nach Hamburg, bitte.“",
     humanTitle: "Ein Mensch, wann immer Sie möchten.",
     humanBody: "Sagen Sie jederzeit „Ich möchte mit jemandem sprechen“ oder „Das verstehe ich nicht“. Marina aus dem CallAssist-Team übernimmt das Gespräch, weiß schon, was Sie gesagt haben, und erledigt das Anliegen mit Ihnen.",
@@ -55,7 +55,7 @@
     finalBody: "Rufen Sie CallAssist direkt hier im Browser an. Sprechen Sie Deutsch oder Englisch, wie am Telefon.",
     finalCta: "Anruf starten",
     finalNote: "Am besten in Chrome oder Edge mit Mikrofon. Kein Mikrofon? Dann tippen Sie Ihre Antworten an.",
-    footer1: "CallAssist ist ein akademischer Prototyp. Telefonnummer, Termine, Fahrkarten und die Beratung in der Demo sind simuliert; die Standorte der Bürgerämter sind echt."
+    footer1: "CallAssist ist ein akademischer Prototyp. Telefonnummer, Termine, Fahrkarten und die Beratung in der Demo sind simuliert; die Standorte der Bürgerämter und Hausarztpraxen sind echt."
   };
 
   // English is the markup itself; remember it so switching back restores it.

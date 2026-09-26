@@ -28,7 +28,7 @@ Marina should sound like a person, so the prototype always prefers the high-qual
 
 ## What the call can do
 
-- **Services, listed at the start:** register a new address (Berlin Citizens' Offices at Mitte Town Hall, Karl-Marx-Allee 31, and Schöneberg Town Hall, John-F.-Kennedy-Platz 1), a GP appointment, or a direct ICE ticket from Berlin to Hamburg, Hanover, Leipzig, Dresden, Frankfurt, Cologne or Munich.
+- **Services, listed at the start:** register a new address (Berlin Citizens' Offices at Mitte Town Hall, Karl-Marx-Allee 31, and Schöneberg Town Hall, John-F.-Kennedy-Platz 1), a GP appointment (Medicover medical centre, Hausvogteiplatz 3–4 in Mitte, or the meraneum GP practice, Bozener Straße 13/14 in Schöneberg), or a direct ICE ticket from Berlin to Hamburg, Hanover, Leipzig, Dresden, Frankfurt, Cologne or Munich.
 - **Natural answers:** the caller can say everything at once ("I moved to Berlin and need to register, Thursday afternoon"). CallAssist reuses whatever it has already heard and only asks for what's missing.
 - **Checks before acting:** CallAssist reads the request back and offers two options. Choosing an option doesn't book it. Booking needs a clear yes, and "no", "wait", "don't book it" or "yes, but in the afternoon" never book.
 - **Human adviser:** "Speak to a person", "I don't understand", the **person** button, or two misunderstood replies in a row put the caller on hold and connect them to Marina. Marina already sees everything said so far and uses shorter questions.
@@ -37,7 +37,7 @@ Marina should sound like a person, so the prototype always prefers the high-qual
 - **Confirmation:** a reference number, the details read back, and a sample confirmation letter on request.
 - **Controls:** mute, replies (tap-to-answer), speaker, slower speech, speak to a person, repeat, end call. Switch between EN and DE at any time, or say "Can we speak German?" during the call.
 
-Everything is simulated: the phone number, the free appointment times, the train times and Marina. The Citizens' Office locations are real. Nothing is stored or sent; the call exists only in the open browser tab.
+Everything is simulated: the phone number, the free appointment times, the train times and Marina. The Citizens' Office and GP practice locations are real. Nothing is stored or sent; the call exists only in the open browser tab.
 
 ## Files
 

@@ -50,18 +50,19 @@
         street: "John-F.-Kennedy-Platz 1, 10825 Berlin"
       }
     ],
+    // Real GP practices (medical care centres); the free appointment times offered there are simulated.
     doctor: [
       {
         key: "mitte",
-        spoken: { en: "at a GP practice in Berlin-Mitte", de: "in einer Hausarztpraxis in Berlin-Mitte" },
-        name: { en: "GP practice, Berlin-Mitte", de: "Hausarztpraxis, Berlin-Mitte" },
-        street: "Berlin-Mitte"
+        spoken: { en: "at the Medicover medical centre in Berlin-Mitte, Hausvogteiplatz 3", de: "im MVZ Medicover Berlin-Mitte, Hausvogteiplatz 3" },
+        name: { en: "Medicover medical centre, Berlin-Mitte", de: "MVZ Medicover Berlin-Mitte" },
+        street: "Hausvogteiplatz 3–4, 10117 Berlin"
       },
       {
         key: "schoeneberg",
-        spoken: { en: "at a GP practice in Berlin-Schöneberg", de: "in einer Hausarztpraxis in Berlin-Schöneberg" },
-        name: { en: "GP practice, Berlin-Schöneberg", de: "Hausarztpraxis, Berlin-Schöneberg" },
-        street: "Berlin-Schöneberg"
+        spoken: { en: "at the meraneum GP practice in Schöneberg, Bozener Straße 13", de: "in der Hausarztpraxis MVZ meraneum in Schöneberg, Bozener Straße 13" },
+        name: { en: "meraneum GP practice, Schöneberg", de: "MVZ meraneum, Schöneberg" },
+        street: "Bozener Straße 13/14, 10825 Berlin"
       }
     ]
   };
@@ -124,8 +125,8 @@
     fieldTime: words(["time", "time of day", "uhrzeit", "tageszeit", "zeit"]),
     fieldCity: words(["city", "town", "stadt", "ort"]),
     fieldDestination: words(["destination", "where", "ziel", "reiseziel", "wohin"]),
-    placeMitte: words(["mitte", "karl-marx-allee", "alexanderplatz"]),
-    placeSchoeneberg: words(["schöneberg", "schoeneberg", "schoneberg", "kennedy", "john-f.-kennedy-platz"])
+    placeMitte: words(["mitte", "karl-marx-allee", "alexanderplatz", "medicover", "hausvogteiplatz"]),
+    placeSchoeneberg: words(["schöneberg", "schoeneberg", "schoneberg", "kennedy", "john-f.-kennedy-platz", "meraneum", "bozener"])
   };
   const DAY_LEX = [
     words(["monday*", "montag*"]), words(["tuesday*", "dienstag*"]), words(["wednesday*", "mittwoch*"]),
@@ -415,14 +416,10 @@
       whereLater: "I'll give you the exact address when I read out the options in a moment.",
       whereOptions: (s) => (s.service === "train"
         ? "All trains leave from Berlin Central Station. The platform is printed on your ticket."
-        : s.service === "doctor"
-          ? `One practice is in ${s.options.length ? "Berlin-Mitte, the other in Berlin-Schöneberg" : "Berlin"}. The exact address is in your confirmation letter.`
-          : `The first is at ${PLACES.address[0].name.en}, ${PLACES.address[0].street}. The second is at ${PLACES.address[1].name.en}, ${PLACES.address[1].street}.`),
+        : `The first is at ${PLACES[s.service][0].name.en}, ${PLACES[s.service][0].street}. The second is at ${PLACES[s.service][1].name.en}, ${PLACES[s.service][1].street}.`),
       whereChosen: (o) => (o.service === "train"
         ? "Your train leaves from Berlin Central Station. The platform is printed on your ticket."
-        : o.service === "doctor"
-          ? `The practice is in ${PLACES.doctor[o.place].street}. The exact address is in your confirmation letter.`
-          : `It's at ${PLACES.address[o.place].name.en}, ${PLACES.address[o.place].street}.`),
+        : `It's at ${PLACES[o.service][o.place].name.en}, ${PLACES[o.service][o.place].street}.`),
       bring: (s) => ({ address: "Please bring your ID card or passport, and the confirmation from your landlord that you've moved in.", doctor: "Just bring your health insurance card.", train: "Just bring your ticket and a photo ID." })[s.service],
       cost: (s) => ({ address: "Registering your address is free of charge, and CallAssist is free for you too.", doctor: "The appointment is covered by your health insurance, and CallAssist is free for you.", train: "CallAssist is free for you. The fare is on the invoice that comes with your ticket." })[s.service],
       questionFirst: "Before I book anything, I want to make sure: shall I book it now, yes or no?"
@@ -492,14 +489,10 @@
       whereLater: "Die genaue Adresse nenne ich Ihnen gleich, wenn ich die Möglichkeiten vorlese.",
       whereOptions: (s) => (s.service === "train"
         ? "Alle Züge fahren ab Berlin Hauptbahnhof. Das Gleis steht auf Ihrer Fahrkarte."
-        : s.service === "doctor"
-          ? `${s.options.length ? "Eine Praxis ist in Berlin-Mitte, die andere in Berlin-Schöneberg" : "Die Praxis ist in Berlin"}. Die genaue Adresse steht in Ihrem Bestätigungsbrief.`
-          : `Der erste Termin ist im ${PLACES.address[0].name.de}, ${PLACES.address[0].street}. Der zweite im ${PLACES.address[1].name.de}, ${PLACES.address[1].street}.`),
+        : `Der erste Termin ist ${s.service === "doctor" ? "in der Praxis" : "im"} ${PLACES[s.service][0].name.de}, ${PLACES[s.service][0].street}. Der zweite ${s.service === "doctor" ? "in der Praxis" : "im"} ${PLACES[s.service][1].name.de}, ${PLACES[s.service][1].street}.`),
       whereChosen: (o) => (o.service === "train"
         ? "Ihr Zug fährt ab Berlin Hauptbahnhof. Das Gleis steht auf Ihrer Fahrkarte."
-        : o.service === "doctor"
-          ? `Die Praxis ist in ${PLACES.doctor[o.place].street}. Die genaue Adresse steht in Ihrem Bestätigungsbrief.`
-          : `Das ist im ${PLACES.address[o.place].name.de}, ${PLACES.address[o.place].street}.`),
+        : `Das ist ${o.service === "doctor" ? "in der Praxis" : "im"} ${PLACES[o.service][o.place].name.de}, ${PLACES[o.service][o.place].street}.`),
       bring: (s) => ({ address: "Bitte bringen Sie Ihren Personalausweis oder Reisepass mit und die Wohnungsgeberbestätigung von Ihrem Vermieter.", doctor: "Bringen Sie einfach Ihre Versichertenkarte mit.", train: "Bringen Sie einfach Ihre Fahrkarte und einen Lichtbildausweis mit." })[s.service],
       cost: (s) => ({ address: "Die Anmeldung ist kostenlos, und CallAssist ist für Sie auch kostenlos.", doctor: "Der Termin wird von Ihrer Krankenkasse übernommen, und CallAssist ist für Sie kostenlos.", train: "CallAssist ist für Sie kostenlos. Den Fahrpreis finden Sie auf der Rechnung, die mit der Fahrkarte kommt." })[s.service],
       questionFirst: "Bevor ich etwas buche, möchte ich sichergehen: Soll ich jetzt buchen, ja oder nein?"
