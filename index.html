@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="CallAssist: one phone call replaces apps and websites. Say what you need; CallAssist books it and confirms by phone or letter." />
+    <title>CallAssist</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231F7A52'/%3E%3Cpath d='M22 16c2 0 3 1 4 3l3 7c1 2 0 3-1 4l-3 2c2 5 6 9 11 11l2-3c1-1 2-2 4-1l7 3c2 1 3 2 3 4 0 5-4 9-9 9-15 0-27-12-27-27 0-5 4-10 9-10z' fill='white'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="landing.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main" data-i18n="skip">Skip to content</a>
+
+    <nav class="nav" aria-label="Main">
+      <div class="nav-inner">
+        <a class="brand" href="#top" aria-label="CallAssist home">
+          <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M22 16c2 0 3 1 4 3l3 7c1 2 0 3-1 4l-3 2c2 5 6 9 11 11l2-3c1-1 2-2 4-1l7 3c2 1 3 2 3 4 0 5-4 9-9 9-15 0-27-12-27-27 0-5 4-10 9-10z" fill="currentColor"/></svg></span>
+          CallAssist
+        </a>
+        <div class="nav-links">
+          <a href="#how" data-i18n="navHow">How it works</a>
+          <a href="#services" data-i18n="navServices">Services</a>
+          <a href="#trust" data-i18n="navTrust">Trust</a>
+          <a href="#ecosystem" data-i18n="navEcosystem">Partners</a>
+        </div>
+        <div class="lang" role="group" aria-label="Language">
+          <button type="button" data-lang="en" aria-pressed="true">EN</button>
+          <button type="button" data-lang="de" aria-pressed="false">DE</button>
+        </div>
+        <a class="nav-cta" href="call.html" data-call-link data-i18n="navCta">Try a call</a>
+      </div>
+    </nav>
+
+    <main id="main">
+      <!-- Hero: the product is a conversation, so the hero is one. -->
+      <header class="hero" id="top">
+        <p class="hero-name">CallAssist</p>
+        <ol class="dialogue" id="dialogue" aria-label="Example call">
+          <li class="caller"><span class="sr" data-i18n="you">You:</span> <span data-i18n="h1">“I’ve moved. I need to register my new address.”</span></li>
+          <li class="ca"><span class="sr">CallAssist:</span> <span data-i18n="h2">“Of course. Which day next week suits you?”</span></li>
+          <li class="caller"><span class="sr" data-i18n="you">You:</span> <span data-i18n="h3">“Tuesday morning.”</span></li>
+          <li class="ca"><span class="sr">CallAssist:</span> <span data-i18n="h4">“Tuesday at 9:40, Mitte Town Hall. Shall I book it?”</span></li>
+          <li class="caller"><span class="sr" data-i18n="you">You:</span> <span data-i18n="h5">“Yes, please.”</span></li>
+          <li class="ca done"><span class="sr">CallAssist:</span> <span data-i18n="h6">“Done. Your letter is on its way.”</span></li>
+        </ol>
+        <h1 class="hero-title" data-i18n="heroTitle">Digital services, without going digital.</h1>
+        <p class="hero-sub" data-i18n="heroSub">Call one free number and say what you need. CallAssist books it for you and confirms by phone or letter. No app, no website, no password.</p>
+        <div class="hero-actions">
+          <a class="button" href="call.html" data-call-link data-i18n="heroCta">Try a call</a>
+          <a class="link" href="#how" data-i18n="heroLink">See how it works</a>
+        </div>
+      </header>
+
+      <section class="why" aria-labelledby="why-title">
+        <div class="wrap">
+          <h2 id="why-title" class="statement" data-i18n="whyTitle">2.1 million people in Germany have never used the internet.</h2>
+          <p class="why-body" data-i18n="whyBody">Among 65- to 74-year-olds it is one in ten. Yet a Citizens' Office appointment, a doctor's appointment or a train ticket increasingly starts on a website or an app. CallAssist lets people use those services with the one device everyone knows: the telephone.</p>
+          <p class="source"><a href="https://www.destatis.de/DE/Presse/Pressemitteilungen/Zahl-der-Woche/2026/PD26_09_p002.html" data-i18n="whySource">Source: Federal Statistical Office of Germany (Destatis), 2025 figures</a></p>
+        </div>
+      </section>
+
+      <section class="how" id="how" aria-labelledby="how-title">
+        <div class="wrap">
+          <h2 id="how-title" class="section-title" data-i18n="howTitle">Three steps. All of them on the phone.</h2>
+          <ol class="steps">
+            <li>
+              <p class="step-n" aria-hidden="true">1</p>
+              <h3 data-i18n="s1t">Call</h3>
+              <p data-i18n="s1b">Dial one free number from any phone, even a landline. CallAssist answers straight away and tells you what it can do.</p>
+            </li>
+            <li>
+              <p class="step-n" aria-hidden="true">2</p>
+              <h3 data-i18n="s2t">Talk</h3>
+              <p data-i18n="s2b">Say what you need in your own words, in German or English. CallAssist asks one simple question at a time and repeats back what it understood.</p>
+            </li>
+            <li>
+              <p class="step-n" aria-hidden="true">3</p>
+              <h3 data-i18n="s3t">Done</h3>
+              <p data-i18n="s3b">After your clear yes, CallAssist books it, reads you the details and sends a confirmation letter if you like.</p>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="services" id="services" aria-labelledby="services-title">
+        <div class="wrap">
+          <h2 id="services-title" class="section-title" data-i18n="servicesTitle">One number. Three errands to start.</h2>
+          <ul class="service-list">
+            <li>
+              <span class="service-icon" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 14 16 5l11 9v13H5z"/><path d="M13 27v-8h6v8"/></svg></span>
+              <div>
+                <h3 data-i18n="sv1t">Register a new address</h3>
+                <p data-i18n="sv1b">An appointment at a Berlin Citizens' Office, such as Mitte Town Hall on Karl-Marx-Allee, with a reminder of what to bring.</p>
+              </div>
+              <p class="service-say" data-i18n="sv1q">“I’ve moved and need to register.”</p>
+            </li>
+            <li>
+              <span class="service-icon" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="7" width="22" height="20" rx="3"/><path d="M16 12v10M11 17h10"/></svg></span>
+              <div>
+                <h3 data-i18n="sv2t">See a GP</h3>
+                <p data-i18n="sv2b">A morning or afternoon appointment at a practice nearby. In an emergency, CallAssist tells you to call 112 instead.</p>
+              </div>
+              <p class="service-say" data-i18n="sv2q">“I need an appointment with my doctor.”</p>
+            </li>
+            <li>
+              <span class="service-icon" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><rect x="8" y="4" width="16" height="19" rx="4"/><path d="M8 15h16M12 27l2-4M20 27l-2-4"/><circle cx="12.5" cy="19" r="1" fill="currentColor"/><circle cx="19.5" cy="19" r="1" fill="currentColor"/></svg></span>
+              <div>
+                <h3 data-i18n="sv3t">Take the train</h3>
+                <p data-i18n="sv3b">Direct ICE trains from Berlin Central Station to Hamburg, Hanover, Leipzig, Dresden, Frankfurt, Cologne or Munich, with the ticket sent by post.</p>
+              </div>
+              <p class="service-say" data-i18n="sv3q">“A ticket to Hamburg, please.”</p>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="human" aria-labelledby="human-title">
+        <div class="wrap human-grid">
+          <div>
+            <h2 id="human-title" class="section-title" data-i18n="humanTitle">A real person, whenever you want one.</h2>
+            <p class="human-body" data-i18n="humanBody">Say “I’d like to speak to someone” or “I don’t understand” at any moment. Marina from the CallAssist team takes over the call, already knowing what you said, and finishes the errand with you.</p>
+          </div>
+          <div class="handover" aria-label="Example handover">
+            <p class="bubble caller" data-i18n="hv1">“Sorry, I don’t understand.”</p>
+            <p class="bubble ca" data-i18n="hv2">“That’s completely fine. I’m connecting you to Marina from our team.”</p>
+            <p class="bubble adviser"><span class="avatar" aria-hidden="true">M</span><span data-i18n="hv3">“Hello, this is Marina. I can see you’d like to register your new address. Let’s finish this together.”</span></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="trust" id="trust" aria-labelledby="trust-title">
+        <div class="wrap">
+          <h2 id="trust-title" class="section-title" data-i18n="trustTitle">Nothing happens without your yes.</h2>
+          <p class="trust-lead" data-i18n="trustLead">Phone scams target older people. CallAssist is built so that a caller always knows who they are talking to and what will happen next.</p>
+          <ul class="promises">
+            <li><h3 data-i18n="p1t">No PINs. No passwords.</h3><p data-i18n="p1b">CallAssist says so at the start of every call, and ignores such details if someone reads them out.</p></li>
+            <li><h3 data-i18n="p2t">It checks before it acts.</h3><p data-i18n="p2b">Every booking is read back in full and needs a clear yes. “No”, “wait” or “not that one” never books anything.</p></li>
+            <li><h3 data-i18n="p3t">Slowly, and as often as you like.</h3><p data-i18n="p3b">Ask it to repeat or speak more slowly. It uses everyday words, one question at a time.</p></li>
+            <li><h3 data-i18n="p4t">Always in writing.</h3><p data-i18n="p4b">Every booking comes with a reference number and, if you want, a confirmation letter in the post.</p></li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="ecosystem" id="ecosystem" aria-labelledby="eco-title">
+        <div class="wrap">
+          <h2 id="eco-title" class="section-title" data-i18n="ecoTitle">It takes more than one company.</h2>
+          <p class="eco-lead" data-i18n="ecoLead">CallAssist only works when three kinds of partners play their part. Together they make the call worth making.</p>
+          <div class="flow">
+            <ul class="partners">
+              <li><h3 data-i18n="e1t">Service providers</h3><p data-i18n="e1b">Citizens' Offices, GP practices and rail operators let CallAssist book on the caller's behalf.</p></li>
+              <li><h3 data-i18n="e2t">Charities and GPs</h3><p data-i18n="e2b">They know who needs help, and hand out the number to people who trust them.</p></li>
+              <li><h3 data-i18n="e3t">Cities and health insurers</h3><p data-i18n="e3b">They pay per enrolled person, because accessible services save them time and missed appointments.</p></li>
+            </ul>
+            <div class="arrow" aria-hidden="true"></div>
+            <div class="node">
+              <p class="node-name">CallAssist</p>
+              <p data-i18n="nodeBody">Voice assistant, with a person ready to take over</p>
+            </div>
+            <div class="arrow" aria-hidden="true"></div>
+            <div class="node person">
+              <p class="node-name" data-i18n="callerName">The caller</p>
+              <p data-i18n="callerBody">Errand done. Free of charge, no smartphone needed.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="final" aria-labelledby="final-title">
+        <div class="wrap">
+          <h2 id="final-title" class="statement" data-i18n="finalTitle">Hear it for yourself.</h2>
+          <p class="final-body" data-i18n="finalBody">Call CallAssist right here in your browser. Speak English or German, just as you would on the phone.</p>
+          <a class="button big" href="call.html" data-call-link data-i18n="finalCta">Start the call</a>
+          <p class="final-note" data-i18n="finalNote">Works best in Chrome or Safari with a microphone. No microphone? You can tap your answers instead.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="wrap">
+        <p data-i18n="footer1">CallAssist is an academic prototype. The phone number, appointments, tickets and the adviser in the demo are simulated; the Citizens' Office locations are real.</p>
+      </div>
+    </footer>
+
+    <script src="landing.js"></script>
+  </body>
+</html>
