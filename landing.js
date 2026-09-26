@@ -21,7 +21,7 @@
     hpIslandTitle: "Termin gebucht",
     hpIslandDetail: "Di. 9:40 · Rathaus Mitte",
     heroTitle: "Digitale Dienste, ohne digital sein zu müssen.",
-    heroSub: "Eine kostenlose Nummer anrufen und sagen, was Sie brauchen. CallAssist bucht es für Sie und bestätigt per Telefon oder Brief. Gemacht für ältere Menschen und für alle, die das Internet nicht nutzen.",
+    heroSub: "Eine kostenlose Nummer anrufen und sagen, was Sie brauchen. CallAssist sucht einen freien Termin oder Zug, bucht nach Ihrem Ja und bestätigt per Telefon oder Brief. Gemacht für ältere Menschen und für alle, die das Internet nicht nutzen.",
     heroCta: "Jetzt anrufen", heroLink: "So funktioniert’s", heroAssure: "Keine App. Kein Login. Kein Passwort.",
     whyTitle: "Termine sind online gegangen. Millionen Menschen nicht.",
     stat1n: "2,1 Millionen", stat1l: "Menschen zwischen 16 und 74 Jahren waren in Deutschland noch nie im Internet.",
@@ -35,11 +35,11 @@
     servicesTitle: "Eine Nummer. Drei Anliegen für den Anfang.",
     ss1Status: "wird angerufen…", ss2Ask: "Welcher Tag nächste Woche passt Ihnen?", ss2Reply: "Dienstagvormittag, bitte.",
     ss3Title: "Gebucht", ss3When: "Dienstag, 9:40 Uhr", ss3Where: "Bürgeramt Rathaus Mitte", ss3Letter: "Bestätigungsbrief ist unterwegs",
-    sv1t: "Neue Adresse anmelden", sv1b: "Ein Termin beim Bürgeramt in Berlin, Düsseldorf, München oder Frankfurt, mit einem Hinweis, was Sie mitbringen müssen.", sv1q: "„Ich bin umgezogen und muss mich anmelden.“",
-    sv2t: "Zum Hausarzt", sv2b: "Ein Termin am Vormittag oder Nachmittag in einer Hausarztpraxis, zum Beispiel im MVZ Medicover am Hausvogteiplatz in Mitte. Im Notfall sagt CallAssist Ihnen, dass Sie die 112 anrufen sollen.", sv2q: "„Ich brauche einen Termin bei meinem Hausarzt.“",
+    sv1t: "Neue Adresse anmelden", sv1b: "Sucht einen freien Termin beim Bürgeramt in Berlin, Düsseldorf, München oder Frankfurt, mit einem Hinweis, was Sie mitbringen müssen.", sv1q: "„Ich bin umgezogen und muss mich anmelden.“",
+    sv2t: "Zum Hausarzt", sv2b: "Sucht einen Termin am Vormittag oder Nachmittag in einer Hausarztpraxis, zum Beispiel im MVZ Medicover am Hausvogteiplatz in Mitte. Im Notfall sagt CallAssist Ihnen, dass Sie die 112 anrufen sollen.", sv2q: "„Ich brauche einen Termin bei meinem Hausarzt.“",
     sv3t: "Mit dem Zug fahren", sv3b: "Echte ICE-Verbindungen ab Berlin, Düsseldorf, München und Frankfurt in Deutschlands große Städte, die Fahrkarte kommt per Post.", sv3q: "„Eine Fahrkarte von Düsseldorf nach München, bitte.“",
     humanTitle: "Ein Mensch, wann immer Sie möchten.",
-    humanBody: "Sagen Sie jederzeit „Ich möchte mit jemandem sprechen“ oder „Das verstehe ich nicht“. Marina aus dem CallAssist-Team übernimmt das Gespräch, weiß schon, was Sie gesagt haben, und erledigt das Anliegen mit Ihnen.",
+    humanBody: "Sagen Sie jederzeit „Ich möchte mit jemandem sprechen“ oder „Das verstehe ich nicht“. Marina aus dem CallAssist-Team übernimmt das Gespräch, weiß schon, was Sie gesagt haben, und hilft Ihnen, das Anliegen zu erledigen.",
     hv1: "„Entschuldigung, das verstehe ich nicht.“",
     hv2: "„Das ist überhaupt kein Problem. Ich verbinde Sie mit Marina aus unserem Team.“",
     hv3: "„Hallo, hier ist Marina. Ich sehe, Sie möchten Ihre neue Adresse anmelden. Wir machen das jetzt gemeinsam.“",
@@ -55,6 +55,8 @@
     cmpTitle: "Dieselbe Besorgung. Zwei Wege.",
     cmpLead: "Ziehen Sie den Regler: Aus jedem Schritt online wird ein einfacher Schritt am Telefon.", cmpSteps: (n) => `${n} von 4 Schritten mit CallAssist`,
     cmpRange: "Regler: von heute zu CallAssist",
+    baResult: "Ein Anruf statt vier Hürden.",
+    cmpNote: "CallAssist kann keine Termine schaffen, die es nicht gibt. Ist nichts frei, sagt es das und schlägt einen anderen Tag oder eine andere Uhrzeit vor.",
     baBefore: "Heute", baAfter: "Mit CallAssist",
     b1: "App herunterladen", b1s: "App Store · 214 MB",
     b2: "Passwort festlegen", b2s: "Mindestens eine Zahl und ein Sonderzeichen",
@@ -62,14 +64,14 @@
     b4: "Sitzung abgelaufen", b4s: "Bitte melden Sie sich erneut an",
     a1: "Eine kostenlose Nummer anrufen", a1s: "0800 225 5277, von jedem Telefon",
     a2: "Sagen, was Sie brauchen", a2s: "„Ich bin umgezogen und muss mich ummelden.“",
-    a3: "Gebucht: Dienstag, 9:40 Uhr", a3s: "Bürgeramt, Rathaus Mitte",
+    a3: "Sucht bei allen Ämtern für Sie", a3s: "Bucht einen freien Termin, wenn es einen gibt, und sagt es ehrlich, wenn nicht",
     a4: "Bestätigung per Brief", a4s: "Kommt in zwei Werktagen an",
     ecoLead: "CallAssist funktioniert nur, wenn drei Arten von Partnern mitmachen. Gemeinsam machen sie den Anruf lohnenswert.",
     e1t: "Dienstleister", e1b: "Bürgerämter, Hausarztpraxen und Bahnunternehmen lassen CallAssist im Auftrag der Anrufenden buchen.",
     e2t: "Wohlfahrtsverbände und Hausärzte", e2b: "Sie wissen, wer Hilfe braucht, und geben die Nummer an Menschen weiter, die ihnen vertrauen.",
     e3t: "Städte und Krankenkassen", e3b: "Sie zahlen pro angemeldeter Person, weil barrierefreie Dienste ihnen Zeit und verpasste Termine sparen.",
     nodeBody: "Sprachassistent, mit einem Menschen, der jederzeit übernimmt",
-    callerName: "Die anrufende Person", callerBody: "Anliegen erledigt. Kostenlos, ohne Smartphone.",
+    callerName: "Die anrufende Person", callerBody: "Hilfe beim Anliegen. Kostenlos, ohne Smartphone.",
     finalTitle: "Hören Sie selbst.",
     finalBody: "Rufen Sie CallAssist direkt hier im Browser an. Sprechen Sie Deutsch oder Englisch, wie am Telefon.",
     finalCta: "Anruf starten",
@@ -294,13 +296,44 @@
     const range = ba.querySelector(".ba-range");
     const rows = [...ba.querySelectorAll(".ba-rows li")];
     const steps = (n) => (lang === "de" ? DE.cmpSteps(n) : `${n} of 4 steps with CallAssist`);
+    const ticks = [...ba.querySelectorAll(".ba-tick")];
+    const burst = ba.querySelector(".ba-burst");
+    const mouth = ba.querySelector(".f-mouth");
+    let shown = 0, touched = false;
+    // A little confetti from the face when the last hurdle turns over.
+    const celebrate = () => {
+      if (calm) return;
+      burst.replaceChildren(...Array.from({ length: 16 }, (_, i) => {
+        const s = document.createElement("i");
+        const a = (i / 16) * Math.PI * 2 + Math.random() * 0.4, d = 38 + Math.random() * 34;
+        s.style.setProperty("--x", `${(Math.cos(a) * d).toFixed(1)}px`);
+        s.style.setProperty("--y", `${(Math.sin(a) * d - 18).toFixed(1)}px`);
+        s.style.setProperty("--r", `${Math.round(Math.random() * 360)}deg`);
+        s.style.background = ["#34c759", "#1f7a52", "#ffd60a", "#b8f5cf", "#b393f5"][i % 5];
+        return s;
+      }));
+      burst.classList.remove("go"); void burst.offsetWidth; burst.classList.add("go");
+    };
     const setPos = (v) => {
       const done = rows.filter((_, i) => v >= 12.5 + 25 * i).length;
-      rows.forEach((li, i) => li.classList.toggle("fixed", i < done));
+      rows.forEach((li, i) => {
+        li.classList.toggle("fixed", i < done);
+        // The fix lands with a small pop when a row turns over towards CallAssist.
+        if (i < done && i >= shown) { li.classList.remove("pop"); void li.offsetWidth; li.classList.add("pop"); }
+      });
+      ticks.forEach((t, i) => t.classList.toggle("on", i < done));
+      if (done !== shown) {
+        if (touched && navigator.vibrate) navigator.vibrate(done > shown ? 12 : 6);
+        if (done === rows.length && shown < rows.length) celebrate();
+        shown = done;
+      }
+      ba.classList.toggle("complete", done === rows.length);
       ba.style.setProperty("--p", (v / 100).toFixed(3));
+      // The mouth bends from a frown to a smile, passing through a short straight line, never vanishing.
+      const bend = v / 50 - 1;
+      mouth.style.transform = `scaleY(${(Math.sign(bend || 1) * Math.max(0.12, Math.abs(bend))).toFixed(3)})`;
       range.setAttribute("aria-valuetext", steps(done));
     };
-    let touched = false;
     range.addEventListener("input", (e) => { if (e.isTrusted) touched = true; setPos(Number(range.value)); });
     range.addEventListener("pointerdown", () => { touched = true; });
     document.querySelectorAll(".lang button").forEach((b) => b.addEventListener("click", () => setPos(Number(range.value))));

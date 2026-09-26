@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="CallAssist: one phone call replaces apps and websites. Say what you need; CallAssist books it and confirms by phone or letter." />
+    <meta name="description" content="CallAssist: one phone call replaces apps and websites. Say what you need; CallAssist looks for a free appointment, books it with your yes and confirms by phone or letter." />
     <title>CallAssist</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231F7A52'/%3E%3Cpath d='M22 16c2 0 3 1 4 3l3 7c1 2 0 3-1 4l-3 2c2 5 6 9 11 11l2-3c1-1 2-2 4-1l7 3c2 1 3 2 3 4 0 5-4 9-9 9-15 0-27-12-27-27 0-5 4-10 9-10z' fill='white'/%3E%3C/svg%3E" />
-    <link rel="stylesheet" href="landing.css?v=20260926212855" />
+    <link rel="stylesheet" href="landing.css?v=20260926213359" />
   </head>
   <body>
     <a class="skip-link" href="#main" data-i18n="skip">Skip to content</a>
@@ -45,7 +45,7 @@
           <li class="ca done"><span class="sr">CallAssist:</span> <span data-i18n="h6">“Done. Your letter is on its way.”</span></li>
         </ol>
         <h1 class="hero-title" data-i18n="heroTitle">Digital services, without going digital.</h1>
-        <p class="hero-sub" data-i18n="heroSub">Call one free number and say what you need. CallAssist books it for you and confirms by phone or letter. Made for older people, and for anyone who doesn't use the internet.</p>
+        <p class="hero-sub" data-i18n="heroSub">Call one free number and say what you need. CallAssist looks for a free appointment or train, books it once you say yes, and confirms by phone or letter. Made for older people, and for anyone who doesn't use the internet.</p>
         <div class="hero-actions">
           <a class="button big" href="call.html" data-call-link data-i18n="heroCta">Try a call</a>
           <a class="link" href="#how" data-i18n="heroLink">See how it works</a>
@@ -111,7 +111,7 @@
               </li>
               <li>
                 <div class="face before"><span class="ba-icon" aria-hidden="true">✕</span><div><b data-i18n="b3">No appointments available</b><span class="sub" data-i18n="b3s">Please try again later</span></div></div>
-                <div class="face after"><span class="ba-icon" aria-hidden="true">✓</span><div><b data-i18n="a3">Booked: Tuesday, 9:40</b><span class="sub" data-i18n="a3s">Citizens’ Office, Mitte Town Hall</span></div></div>
+                <div class="face after"><span class="ba-icon" aria-hidden="true">✓</span><div><b data-i18n="a3">Searches every office for you</b><span class="sub" data-i18n="a3s">Books a free slot if there is one, and says so honestly if not</span></div></div>
               </li>
               <li>
                 <div class="face before"><span class="ba-icon" aria-hidden="true">✕</span><div><b data-i18n="b4">Session expired</b><span class="sub" data-i18n="b4s">Please log in again</span></div></div>
@@ -120,10 +120,17 @@
             </ol>
             <div class="ba-control">
               <span class="ba-end" data-i18n="baBefore">Today</span>
-              <input class="ba-range" type="range" min="0" max="100" value="0" aria-label="Slide from today to CallAssist" data-i18n-label="cmpRange" />
+              <div class="ba-track">
+                <span class="ba-tick" style="--t: .125" aria-hidden="true"></span><span class="ba-tick" style="--t: .375" aria-hidden="true"></span><span class="ba-tick" style="--t: .625" aria-hidden="true"></span><span class="ba-tick" style="--t: .875" aria-hidden="true"></span>
+                <input class="ba-range" type="range" min="0" max="100" value="0" aria-label="Slide from today to CallAssist" data-i18n-label="cmpRange" />
+                <span class="ba-face" aria-hidden="true"><svg viewBox="0 0 44 44" width="44" height="44"><circle class="f-bg" cx="22" cy="22" r="20"/><circle cx="15.5" cy="18" r="2.6" fill="#1d1d1f"/><circle cx="28.5" cy="18" r="2.6" fill="#1d1d1f"/><path class="f-mouth" d="M13.5 27 Q22 35 30.5 27" fill="none" stroke="#1d1d1f" stroke-width="2.8" stroke-linecap="round"/></svg></span>
+                <span class="ba-burst" aria-hidden="true"></span>
+              </div>
               <span class="ba-end on" data-i18n="baAfter">With CallAssist</span>
             </div>
+            <p class="ba-result" data-i18n="baResult">One call instead of four hurdles.</p>
           </div>
+          <p class="compare-note" data-i18n="cmpNote">CallAssist can’t create appointments that don’t exist. If nothing is free, it says so and suggests another day or time.</p>
         </div>
       </section>
 
@@ -194,7 +201,7 @@
               <span class="service-icon" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 14 16 5l11 9v13H5z"/><path d="M13 27v-8h6v8"/></svg></span>
               <div>
                 <h3 data-i18n="sv1t">Register a new address</h3>
-                <p data-i18n="sv1b">An appointment at the Citizens' Office in Berlin, Düsseldorf, Munich or Frankfurt, with a reminder of what to bring.</p>
+                <p data-i18n="sv1b">Looks for a free appointment at the Citizens' Office in Berlin, Düsseldorf, Munich or Frankfurt, with a reminder of what to bring.</p>
               </div>
               <p class="service-say" data-i18n="sv1q">“I’ve moved and need to register.”</p>
             </li>
@@ -202,7 +209,7 @@
               <span class="service-icon" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="7" width="22" height="20" rx="3"/><path d="M16 12v10M11 17h10"/></svg></span>
               <div>
                 <h3 data-i18n="sv2t">See a GP</h3>
-                <p data-i18n="sv2b">A morning or afternoon appointment at a GP practice, such as the Medicover centre on Hausvogteiplatz in Mitte. In an emergency, CallAssist tells you to call 112 instead.</p>
+                <p data-i18n="sv2b">Looks for a morning or afternoon appointment at a GP practice, such as the Medicover centre on Hausvogteiplatz in Mitte. In an emergency, CallAssist tells you to call 112 instead.</p>
               </div>
               <p class="service-say" data-i18n="sv2q">“I need an appointment with my doctor.”</p>
             </li>
@@ -222,7 +229,7 @@
         <div class="wrap human-grid">
           <div>
             <h2 id="human-title" class="section-title" data-i18n="humanTitle">A real person, whenever you want one.</h2>
-            <p class="human-body" data-i18n="humanBody" data-lit>Say “I’d like to speak to someone” or “I don’t understand” at any moment. Marina from the CallAssist team takes over the call, already knowing what you said, and finishes the errand with you.</p>
+            <p class="human-body" data-i18n="humanBody" data-lit>Say “I’d like to speak to someone” or “I don’t understand” at any moment. Marina from the CallAssist team takes over the call, already knowing what you said, and helps you finish the errand.</p>
           </div>
           <div class="handover" aria-label="Example handover">
             <p class="bubble caller" data-i18n="hv1">“Sorry, I don’t understand.”</p>
@@ -266,7 +273,7 @@
             <div class="node person">
               <p class="node-name" data-i18n="callerName">The caller</p>
               <p class="gives" data-i18n="callerGets">One phone call</p>
-              <p data-i18n="callerBody">Errand done. Free of charge, no smartphone needed.</p>
+              <p data-i18n="callerBody">Help with the errand. Free of charge, no smartphone needed.</p>
             </div>
           </div>
         </div>
@@ -292,6 +299,6 @@
       </div>
     </footer>
 
-    <script src="landing.js?v=20260926212855"></script>
+    <script src="landing.js?v=20260926213359"></script>
   </body>
 </html>

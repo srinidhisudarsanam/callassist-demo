@@ -172,11 +172,43 @@ section { padding: 112px 0; }
 .ba-control { display: flex; align-items: center; gap: 16px; max-width: 760px; margin: 24px auto 0; }
 .ba-end { flex: none; font-size: 14px; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; color: #3a3a3c; }
 .ba-end.on { color: #17613f; }
-.ba-range { flex: 1; min-width: 0; height: 44px; margin: 0; background: none; cursor: pointer; -webkit-appearance: none; appearance: none; }
-.ba-range::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; background: linear-gradient(90deg, #34c759 calc(var(--p) * 100%), rgba(0, 0, 0, .14) 0); }
-.ba-range::-moz-range-track { height: 8px; border-radius: 4px; background: linear-gradient(90deg, #34c759 calc(var(--p) * 100%), rgba(0, 0, 0, .14) 0); }
-.ba-range::-webkit-slider-thumb { -webkit-appearance: none; width: 32px; height: 32px; margin-top: -12px; border-radius: 50%; background: #fff; border: 0; box-shadow: 0 4px 14px -4px rgba(0, 0, 0, .45), 0 0 0 1px rgba(0, 0, 0, .06); }
-.ba-range::-moz-range-thumb { width: 32px; height: 32px; border-radius: 50%; background: #fff; border: 0; box-shadow: 0 4px 14px -4px rgba(0, 0, 0, .45); }
+/* The handle is a face that rolls along: worried and red at "Today", smiling and green with CallAssist.
+   The native range stays underneath for mouse, touch, keys and screen readers. */
+.ba-track { position: relative; flex: 1; min-width: 0; height: 48px; display: flex; align-items: center; }
+.ba-range { position: relative; z-index: 0; width: 100%; height: 48px; margin: 0; background: none; cursor: grab; -webkit-appearance: none; appearance: none; }
+.ba-range:active { cursor: grabbing; }
+.ba-range::-webkit-slider-runnable-track { height: 10px; border-radius: 5px; background: linear-gradient(90deg, #ff6b5e, #ffd60a calc(calc(24px + var(--p) * (100% - 48px)) * .6), #34c759 calc(24px + var(--p) * (100% - 48px)), rgba(0, 0, 0, .12) 0); }
+.ba-range::-moz-range-track { height: 10px; border-radius: 5px; background: linear-gradient(90deg, #ff6b5e, #ffd60a calc(calc(24px + var(--p) * (100% - 48px)) * .6), #34c759 calc(24px + var(--p) * (100% - 48px)), rgba(0, 0, 0, .12) 0); }
+.ba-range::-webkit-slider-thumb { -webkit-appearance: none; width: 48px; height: 48px; margin-top: -19px; border: 0; background: transparent; }
+.ba-range::-moz-range-thumb { width: 48px; height: 48px; border: 0; background: transparent; }
+.ba-face { position: absolute; z-index: 2; top: 50%; left: calc(var(--p) * (100% - 48px) + 2px); width: 44px; height: 44px; pointer-events: none; translate: 0 -50%; filter: drop-shadow(0 5px 10px rgba(0, 0, 0, .25)); transition: scale .25s cubic-bezier(.3, 1.6, .5, 1); }
+.ba-face svg { display: block; rotate: calc((var(--p) - .5) * 24deg); }
+.f-bg { fill: color-mix(in srgb, #34c759 calc(var(--p) * 100%), #ff8a7a); stroke: #fff; stroke-width: 3; }
+.f-mouth { transform-box: fill-box; transform-origin: 50% 50%; transform: scaleY(-1); } /* the script bends it from frown to smile */
+.ba-track:active .ba-face, .ba-range:focus-visible ~ .ba-face { scale: 1.15; }
+/* Four stops on the track light up as each hurdle turns into a fix. */
+.ba-tick { position: absolute; z-index: 1; pointer-events: none; top: 50%; left: calc(24px + var(--t) * (100% - 48px)); width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px rgba(0, 0, 0, .15); transition: background .2s ease, box-shadow .2s ease; }
+.ba-tick.on { background: #34c759; box-shadow: 0 0 0 2px #fff, 0 0 0 5px rgba(52, 199, 89, .35); animation: tick-pop .45s cubic-bezier(.3, 1.8, .5, 1); }
+@keyframes tick-pop { 0% { scale: .4; } 60% { scale: 1.35; } 100% { scale: 1; } }
+/* Confetti bursts from the face when every row is fixed. */
+.ba-burst { position: absolute; z-index: 3; top: 50%; left: calc(var(--p) * (100% - 48px) + 24px); width: 0; height: 0; pointer-events: none; }
+.ba-burst i { position: absolute; width: 7px; height: 11px; border-radius: 2px; opacity: 0; }
+.ba-burst.go i { animation: confetti 1s cubic-bezier(.2, .7, .3, 1) forwards; }
+@keyframes confetti { 0% { opacity: 1; transform: translate(-50%, -50%) rotate(0); } 100% { opacity: 0; transform: translate(calc(var(--x) - 50%), calc(var(--y) + 30px - 50%)) rotate(var(--r)); } }
+/* Before the fix, the hurdles fidget; each fix lands with a pop and a small sparkle. */
+.ba-rows li:not(.fixed) .face.before { animation: fidget 3.2s ease-in-out infinite; }
+.ba-rows li:nth-child(2):not(.fixed) .face.before { animation-delay: -.8s; }
+.ba-rows li:nth-child(3):not(.fixed) .face.before { animation-delay: -1.6s; }
+.ba-rows li:nth-child(4):not(.fixed) .face.before { animation-delay: -2.4s; }
+@keyframes fidget { 0%, 100% { translate: 0 0; rotate: 0deg; } 20% { translate: -2px 0; rotate: -.4deg; } 40% { translate: 2px 0; rotate: .4deg; } 60% { translate: 0 0; rotate: 0deg; } }
+.ba-rows li.pop .face.after .ba-icon { animation: icon-pop .6s cubic-bezier(.3, 1.8, .5, 1) .25s both; }
+.ba-rows li.pop .face.after .ba-icon::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid #34c759; animation: sparkle .7s ease-out .3s both; }
+.ba-icon { position: relative; }
+@keyframes icon-pop { 0% { scale: .3; } 60% { scale: 1.25; } 100% { scale: 1; } }
+@keyframes sparkle { 0% { opacity: .9; scale: .6; } 100% { opacity: 0; scale: 1.9; } }
+.ba-result { margin: 18px 0 0; text-align: center; font-family: var(--display); font-size: 22px; font-weight: 600; color: #17613f; opacity: 0; translate: 0 8px; transition: opacity .5s ease, translate .5s cubic-bezier(.2, .7, .2, 1); }
+.ba.complete .ba-result { opacity: 1; translate: 0 0; }
+.compare-note { margin: 16px auto 0; max-width: 62ch; text-align: center; color: var(--muted); font-size: 15px; }
 .ba-range:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; border-radius: 8px; }
 
 /* The closing button carries the (demo) number, like a real service. */
@@ -277,6 +309,7 @@ section { padding: 112px 0; }
   .ba-icon { width: 26px; height: 26px; font-size: 13px; }
   .ba-control { gap: 10px; margin-top: 16px; }
   .ba-end { font-size: 11px; }
+  .ba-result { font-size: 18px; }
   .arrow::after { right: auto; left: -5px; top: auto; bottom: -2px; border: 6px solid transparent; border-top: 9px solid var(--brand); border-bottom: 0; }
 }
 @media (max-width: 420px) {
@@ -440,6 +473,7 @@ section { padding: 112px 0; }
   .js .flow .arrow { transform: none; }
   .js .flow.in .arrow i, .phone-stage::before { animation: none; }
   .face { transition: none; }
+  .ba-rows li .face.before, .ba-tick.on, .ba-rows li.pop .face.after .ba-icon, .ba-rows li.pop .face.after .ba-icon::after { animation: none !important; }
   .phone3d, .phone-stage .phone3d.floating { animation: none; transition: none; }
   .js .phone-stage .phone3d.entering { transform: rotateX(var(--rx)) rotateY(var(--ry)); opacity: 1; }
   .call-cta-button::before, .call-cta-button::after, .ss-rings span { animation: none; opacity: 0; }
