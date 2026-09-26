@@ -18,6 +18,8 @@
     h4: "„Dienstag, 9:40 Uhr, Rathaus Mitte. Soll ich buchen?“",
     h5: "„Ja, bitte.“",
     h6: "„Erledigt. Ihr Brief ist unterwegs.“",
+    hpIslandTitle: "Termin gebucht",
+    hpIslandDetail: "Di. 9:40 · Rathaus Mitte",
     heroTitle: "Digitale Dienste, ohne digital sein zu müssen.",
     heroSub: "Eine kostenlose Nummer anrufen und sagen, was Sie brauchen. CallAssist bucht es für Sie und bestätigt per Telefon oder Brief. Keine App, keine Website, kein Passwort. Gemacht für ältere Menschen und für alle, die das Internet nicht nutzen.",
     heroCta: "Jetzt anrufen", heroLink: "So funktioniert’s",
@@ -103,6 +105,11 @@
     hpTime.textContent = "00:42";
   } else {
     lines.forEach((li, i) => setTimeout(() => { li.classList.add("shown"); caption(li); }, 350 + i * 850));
+    // As the booking is confirmed, the phone's island opens into a small live card for a moment.
+    const island = document.getElementById("hpIsland");
+    const booked = 350 + (lines.length - 1) * 850 + 300;
+    setTimeout(() => island.classList.add("open"), booked);
+    setTimeout(() => island.classList.remove("open"), booked + 4200);
     const start = Date.now() - 36000; // the call has been going for a little while
     const tick = () => { const s = Math.floor((Date.now() - start) / 1000); hpTime.textContent = `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`; };
     tick();

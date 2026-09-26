@@ -471,7 +471,9 @@
     if (!voice.ok || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      stream.getTracks().forEach((track) => track.stop());
+      // Kept open for the call so the bars can show the caller's voice level.
+      releaseMicrophone();
+      micStream = stream;
     } catch (error) {
       voice = { ok: false, reason: error && error.name === "NotFoundError" ? "voiceNoMic" : location.protocol === "file:" ? "voiceFile" : "voiceDenied" };
       $("voiceNote").textContent = t()[voice.reason];
@@ -511,6 +513,62 @@
     $("turnText").textContent = text;
     el.classList.toggle("clickable", canTalk && (state === "retry" || speaking));
     el.disabled = !el.classList.contains("clickable");
+    $("phone").dataset.turn = el.dataset.state;
+    if (el.dataset.state === "listening") startMeter(); else stopMeter();
+  }
+
+  // ---------------------------------------------------------------- live voice meter
+  // While the caller has the turn, the five bars follow the real microphone level.
+  let micStream = null, meterRaf = 0, analyser = null;
+  const BAR_SHAPE = [0.55, 0.85, 1, 0.8, 0.6];
+  function startMeter() {
+    const ctx = audioContext();
+    if (!micStream || !ctx || meterRaf) return;
+    if (!analyser) {
+      analyser = ctx.createAnalyser();
+      analyser.fftSize = 512;
+      ctx.createMediaStreamSource(micStream).connect(analyser);
+    }
+    const data = new Uint8Array(analyser.fftSize);
+    const bars = [...document.querySelectorAll("#turn .turn-bars i")];
+    $("turn").classList.add("live");
+    let level = 0;
+    const frame = () => {
+      analyser.getByteTimeDomainData(data);
+      let sum = 0;
+      for (const v of data) sum += ((v - 128) / 128) ** 2;
+      const rms = Math.sqrt(sum / data.length);
+      level = Math.max(Math.min(1, rms * 7), level * 0.82); // rise at once, fall gently
+      bars.forEach((b, i) => { b.style.height = `${(5 + level * 13 * BAR_SHAPE[i] * (0.8 + Math.random() * 0.4)).toFixed(1)}px`; });
+      meterRaf = requestAnimationFrame(frame);
+    };
+    meterRaf = requestAnimationFrame(frame);
+  }
+  function stopMeter() {
+    if (meterRaf) cancelAnimationFrame(meterRaf);
+    meterRaf = 0;
+    $("turn").classList.remove("live");
+    document.querySelectorAll("#turn .turn-bars i").forEach((b) => { b.style.height = ""; });
+  }
+  function releaseMicrophone() {
+    stopMeter();
+    if (micStream) micStream.getTracks().forEach((track) => track.stop());
+    micStream = null;
+    analyser = null;
+  }
+
+  // ---------------------------------------------------------------- dynamic island
+  let islandTimer = 0;
+  function showIsland(booking) {
+    const card = E.optionCard(booking, lang);
+    const day = new Intl.DateTimeFormat(lang === "de" ? "de-DE" : "en-GB", { weekday: "short", timeZone: "UTC" }).format(new Date(`${booking.date}T12:00:00Z`));
+    const time = booking.time.replace(/^0/, "");
+    $("islandTitle").textContent = booking.service === "train" ? t().kindTicket : t().kindAppointment;
+    $("islandDetail").textContent = `${day} ${time} · ${booking.service === "train" ? booking.train : card.title}`;
+    const island = $("island");
+    island.classList.add("open");
+    clearTimeout(islandTimer);
+    islandTimer = setTimeout(() => island.classList.remove("open"), 3600);
   }
 
   function addLine(kind, text, extra) {
@@ -589,7 +647,14 @@
     $("phone").dataset.who = who;
     $("peerName").textContent = who === "adviser" ? "Marina" : "CallAssist";
     const avatar = $("peerAvatar");
-    if (who === "adviser") avatar.textContent = "M";
+    if (who === "adviser" && avatar.dataset.who !== "adviser") {
+      avatar.dataset.who = "adviser";
+      // The avatar shrinks away and comes back as Marina while the colours blend.
+      avatar.classList.remove("swap");
+      void avatar.offsetWidth;
+      avatar.classList.add("swap");
+      setTimeout(() => { avatar.textContent = "M"; }, 320);
+    }
   }
 
   function renderFacts() {
@@ -722,6 +787,7 @@
         applyLanguage();
       } else if (out.type === "booked" || out.type === "postal") {
         addBookingLine(out.booking);
+        if (out.type === "booked") showIsland(out.booking);
       } else if (out.type === "hold") {
         showHold(out.kind);
         setTurn("idle");
@@ -771,6 +837,7 @@
     $("captionWho").textContent = "";
     $("captionText").textContent = "";
     $("peerAvatar").innerHTML = $("contactScreen").querySelector(".contact-avatar").innerHTML;
+    $("peerAvatar").dataset.who = "assistant";
     setScreen("call");
     $("callStatus").textContent = t().calling;
     announce(t().calling);
@@ -794,6 +861,9 @@
 
   function finishCall() {
     token += 1;
+    releaseMicrophone();
+    clearTimeout(islandTimer);
+    $("island").classList.remove("open");
     stopListening();
     stopSpeech();
     hideHold();
@@ -836,7 +906,12 @@
       box.append(p);
     });
     $("letterBring").textContent = t().bring[booking.service];
-    $("letter").showModal();
+    const letter = $("letter");
+    letter.classList.remove("opening");
+    void letter.offsetWidth;
+    if (!matchMedia("(prefers-reduced-motion: reduce)").matches) letter.classList.add("opening");
+    letter.showModal();
+    setTimeout(() => letter.classList.remove("opening"), 1800);
   }
 
   // ---------------------------------------------------------------- wiring
@@ -922,7 +997,7 @@
 
   loadVoices();
   if ("speechSynthesis" in window) window.speechSynthesis.addEventListener("voiceschanged", loadVoices);
-  window.addEventListener("pagehide", () => { stopSpeech(); stopListening(); });
+  window.addEventListener("pagehide", () => { stopSpeech(); stopListening(); releaseMicrophone(); });
 
   setScreen("contact");
   applyLanguage();

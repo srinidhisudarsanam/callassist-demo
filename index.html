@@ -6,7 +6,7 @@
     <meta name="description" content="CallAssist: one phone call replaces apps and websites. Say what you need; CallAssist books it and confirms by phone or letter." />
     <title>CallAssist</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231F7A52'/%3E%3Cpath d='M22 16c2 0 3 1 4 3l3 7c1 2 0 3-1 4l-3 2c2 5 6 9 11 11l2-3c1-1 2-2 4-1l7 3c2 1 3 2 3 4 0 5-4 9-9 9-15 0-27-12-27-27 0-5 4-10 9-10z' fill='white'/%3E%3C/svg%3E" />
-    <link rel="stylesheet" href="landing.css?v=20260926205329" />
+    <link rel="stylesheet" href="landing.css?v=20260926210642" />
   </head>
   <body>
     <a class="skip-link" href="#main" data-i18n="skip">Skip to content</a>
@@ -56,7 +56,10 @@
         <div class="phone-depth" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
         <div class="hero-phone">
           <div class="hp-screen">
-            <div class="hp-island"></div>
+            <div class="hp-island" id="hpIsland">
+              <span class="hp-island-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+              <span class="hp-island-text"><b data-i18n="hpIslandTitle">Appointment booked</b><span data-i18n="hpIslandDetail">Tue 9:40 · Mitte Town Hall</span></span>
+            </div>
             <p class="hp-name">CallAssist</p>
             <p class="hp-time" id="hpTime">00:00</p>
             <div class="hp-avatar"><svg width="28" height="28" viewBox="0 0 64 64"><path d="M22 16c2 0 3 1 4 3l3 7c1 2 0 3-1 4l-3 2c2 5 6 9 11 11l2-3c1-1 2-2 4-1l7 3c2 1 3 2 3 4 0 5-4 9-9 9-15 0-27-12-27-27 0-5 4-10 9-10z" fill="currentColor"/></svg></div>
@@ -253,6 +256,6 @@
       </div>
     </footer>
 
-    <script src="landing.js?v=20260926205329"></script>
+    <script src="landing.js?v=20260926210642"></script>
   </body>
 </html>
