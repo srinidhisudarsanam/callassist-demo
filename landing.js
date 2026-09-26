@@ -143,9 +143,57 @@
     }
   }
 
+  // How far an element has travelled between two points of the viewport (fractions of its height), 0 to 1.
+  function travel(el, from, to) {
+    const top = el.getBoundingClientRect().top;
+    return Math.min(1, Math.max(0, (innerHeight * from - top) / (innerHeight * (from - to))));
+  }
+
+  // Copy that lights up word by word as it scrolls through the screen.
+  const litBlocks = [...document.querySelectorAll("[data-lit]")];
+  function splitWords(el) {
+    const words = el.textContent.trim().split(/\s+/);
+    el.replaceChildren(...words.flatMap((w, i) => {
+      const span = document.createElement("span");
+      span.className = "w";
+      span.textContent = w;
+      return i ? [" ", span] : [span];
+    }));
+    el.dataset.on = "-1";
+  }
+  function lightWords(el) {
+    const words = el.querySelectorAll(".w");
+    const on = Math.round(travel(el, 0.88, 0.42) * words.length);
+    if (String(on) === el.dataset.on) return;
+    el.dataset.on = String(on);
+    words.forEach((w, i) => w.classList.toggle("on", i < on));
+  }
+  if (!calm) {
+    litBlocks.forEach((el) => { el.classList.add("lit"); splitWords(el); });
+    // A language switch rewrites the copy; split it again.
+    document.querySelectorAll(".lang button").forEach((b) => b.addEventListener("click", () => { litBlocks.forEach(splitWords); onScroll(); }));
+  }
+
+  // The dark section opens from an inset card to the full width; the closing line zooms into place.
+  const human = document.querySelector(".human");
+  const finalTitle = document.querySelector(".final .statement");
+
   // Scroll: the pinned story turns the phone and moves through its three screens.
   function onScroll() {
     nav.classList.toggle("scrolled", scrollY > 8);
+    if (!calm) {
+      litBlocks.forEach(lightWords);
+      if (human) {
+        const g = 1 - travel(human, 1, 0.25);
+        human.style.setProperty("--inset", `${(g * Math.min(48, innerWidth * 0.04)).toFixed(1)}px`);
+        human.style.setProperty("--round", `${(g * 36).toFixed(1)}px`);
+      }
+      if (finalTitle) {
+        const z = travel(finalTitle, 1, 0.5);
+        finalTitle.style.transform = `scale(${(0.86 + z * 0.14).toFixed(3)})`;
+        finalTitle.style.opacity = (0.25 + z * 0.75).toFixed(3);
+      }
+    }
     if (!track || getComputedStyle(sticky).position !== "sticky") return;
     const r = track.getBoundingClientRect();
     const p = Math.min(1, Math.max(0, -r.top / (r.height - innerHeight)));
@@ -158,7 +206,9 @@
   onScroll();
 
   // Headlines and content sharpen into view, siblings slightly staggered.
-  const reveal = document.querySelectorAll(".section-title, .statement, .why-body, .stat, .service-list li, .human-body, .promises li, .partners li, .node, .trust-lead, .eco-lead, .final-body, .call-cta");
+  // Copy that lights up and the closing line that zooms are driven by scroll instead.
+  const reveal = [...document.querySelectorAll(".section-title, .statement, .why-body, .stat, .service-list li, .human-body, .promises li, .partners li, .node, .trust-lead, .eco-lead, .final-body, .call-cta")]
+    .filter((el) => calm || !(el.hasAttribute("data-lit") || el === finalTitle));
   reveal.forEach((el) => {
     el.classList.add("reveal");
     const siblings = [...el.parentElement.children].filter((c) => c.classList.contains("reveal"));
